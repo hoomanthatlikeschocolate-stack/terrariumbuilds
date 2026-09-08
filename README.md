@@ -8,6 +8,7 @@ Terrarium shop and animal habitat tutorials, deployed on Vercel with a Supabase 
 - Member registration/login and guest browsing/ordering. Members can view their own requests.
 - Two owner accounts. Ctrl+Alt+H or Owner access opens the gateway, then the owner login.
 - Listings and tutorials: add, edit, delete, publish/unpublish, upload images.
+- Site images: owners can change the global logo, hero photo, caption, and accessibility text; updates are saved in Supabase for every visitor.
 - Private owner chat, including private image attachments, and an order management view.
 
 ## Deployment
@@ -26,7 +27,7 @@ The twelve starter products are coming-soon catalog entries: stock is zero and p
 
 ## Content
 
-Three starter build guides include linked husbandry references. Owners are responsible for checking species-specific care before publishing further tutorials. The hero photograph is credited to Life.Time.Values on Unsplash: https://unsplash.com/photos/FOpKdtpJmeg . It is illustrative and does not represent an item for sale.
+Three starter build guides include linked husbandry references. Owners are responsible for checking species-specific care before publishing further tutorials. The hero photograph is a real Unsplash photo by Mr. Pugo: https://unsplash.com/photos/a-glass-terrarium-with-plants-and-moss-gibFdDRj2qw . It is illustrative and does not represent an item for sale.
 
 ## Maintenance
 
