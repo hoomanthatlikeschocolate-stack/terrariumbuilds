@@ -1,0 +1,217 @@
+{
+  "products": [
+    {
+      "name": "Live terrarium moss",
+      "category": "Plants & moss",
+      "description": "Living moss for a shaded, humid planting area. Species, pack size, and care details will be added before this item is stocked.",
+      "published": true,
+      "stock": 0
+    },
+    {
+      "name": "Mini cork logs",
+      "category": "Wood & hides",
+      "description": "Small cork pieces for sheltered spaces and natural texture. Exact dimensions and quantity will be added before sale.",
+      "published": true,
+      "stock": 0
+    },
+    {
+      "name": "Small driftwood",
+      "category": "Wood & hides",
+      "description": "Branching wood for a natural layout. Each piece varies. Size, treatment, and species suitability will be listed with the available stock.",
+      "published": true,
+      "stock": 0
+    },
+    {
+      "name": "Leaf litter",
+      "category": "Substrate",
+      "description": "A forest-floor layer for compatible bioactive habitats. Leaf type and pack volume will be confirmed before sale.",
+      "published": true,
+      "stock": 0
+    },
+    {
+      "name": "Bioactive substrate",
+      "category": "Substrate",
+      "description": "A planting and burrowing base. Choose a mix matched to your animal; composition and bag size will be listed before sale.",
+      "published": true,
+      "stock": 0
+    },
+    {
+      "name": "Drainage layer & mesh",
+      "category": "Substrate",
+      "description": "Drainage material and a separating mesh for suitable planted builds. Not every habitat needs a drainage layer.",
+      "published": true,
+      "stock": 0
+    },
+    {
+      "name": "Mini terrarium plants",
+      "category": "Plants & moss",
+      "description": "Compact plants for a planted habitat. Plant species and animal suitability will be identified before they are available.",
+      "published": true,
+      "stock": 0
+    },
+    {
+      "name": "Thermometer & hygrometer",
+      "category": "Equipment",
+      "description": "Monitor temperature and humidity in your habitat. Sensor type, accuracy, and model details will be added before sale.",
+      "published": true,
+      "stock": 0
+    },
+    {
+      "name": "Hides & water dishes",
+      "category": "Wood & hides",
+      "description": "Shelter and a stable drinking dish sized for your animal. Dimensions and materials will be added with the stock.",
+      "published": true,
+      "stock": 0
+    },
+    {
+      "name": "Lighting & heat controls",
+      "category": "Equipment",
+      "description": "Species-appropriate lighting and thermostatic control equipment. Exact models and compatibility must be checked before purchase.",
+      "published": true,
+      "stock": 0
+    },
+    {
+      "name": "Misting bottle",
+      "category": "Equipment",
+      "description": "For controlled watering of compatible humid habitats. Capacity and spray pattern will be added before sale.",
+      "published": true,
+      "stock": 0
+    },
+    {
+      "name": "Terrarium tools",
+      "category": "Equipment",
+      "description": "Planting tweezers and small maintenance tools. Lengths and included pieces will be confirmed when stocked.",
+      "published": true,
+      "stock": 0
+    }
+  ],
+  "tutorials": [
+    {
+      "title": "A forest floor for isopods",
+      "animal": "Terrestrial isopods",
+      "summary": "Make a ventilated leaf-litter habitat with a moist retreat and a drier side.",
+      "difficulty": "Beginner",
+      "materials": "Escape-proof ventilated container\nSpecies-appropriate substrate\nPesticide-free hardwood leaf litter\nCork bark hide\nSphagnum moss\nSuitable calcium source",
+      "steps": [
+        {
+          "title": "Start with the species",
+          "body": "Identify your isopods before building. Terrestrial species differ in ventilation and moisture needs; use a species-specific guide alongside these general steps."
+        },
+        {
+          "title": "Choose a secure container",
+          "body": "Use an escape-resistant lid with ventilation. Keep furnishings and leaf litter below the rim so they do not create an escape route. Do not use a sealed jar."
+        },
+        {
+          "title": "Add the substrate",
+          "body": "Add an appropriate substrate deep enough for your species to burrow. Avoid water pooling at the bottom."
+        },
+        {
+          "title": "Make a moisture gradient",
+          "body": "Keep moss at one end damp, while allowing the opposite side to remain drier. The animals need a choice of conditions."
+        },
+        {
+          "title": "Build the forest floor",
+          "body": "Add hardwood leaf litter and cork bark. Leaf litter serves as food and shelter; replenish it as it breaks down. Supply a suitable calcium source."
+        },
+        {
+          "title": "Check and maintain",
+          "body": "Check moisture regularly, remove spoiled supplemental food, and maintain airflow. Adjust the wet end without soaking the whole enclosure."
+        }
+      ],
+      "note": "Never release captive isopods or used habitat materials outdoors. This is a habitat build, not a complete feeding or breeding guide.",
+      "sources": [
+        {
+          "label": "NEHERP — Isopod care and species differences",
+          "url": "https://www.neherpetoculture.com/isopodcare"
+        }
+      ],
+      "published": true
+    },
+    {
+      "title": "A climbing habitat for crested geckos",
+      "animal": "Crested gecko",
+      "summary": "Build upward with secure branches, leafy cover, and a carefully controlled environment.",
+      "difficulty": "Intermediate",
+      "materials": "Tall, secure, well-ventilated vivarium\nSturdy branches and cork bark\nSuitable live or artificial foliage\nSpecies-appropriate substrate\nDigital thermometers and hygrometer\nSuitable UVB and lighting equipment\nThermostat for any heat source\nWater dish and feeding ledge",
+      "steps": [
+        {
+          "title": "Plan upward",
+          "body": "Choose a tall vivarium for climbing. The RSPCA lists 45 × 45 × 60 cm (width × depth × height) as a minimum for one adult; provide more usable space where possible."
+        },
+        {
+          "title": "Choose a stable location",
+          "body": "Keep the enclosure out of direct sun and away from draughts or radiators. Check the door and ventilation openings for escape gaps."
+        },
+        {
+          "title": "Install environmental equipment",
+          "body": "Set up species-appropriate lighting, UVB, and any needed heat with a suitable thermostat. Use the linked care sheet for temperatures, UVB placement, and the day/night cycle."
+        },
+        {
+          "title": "Secure the climbing routes",
+          "body": "Fix branches firmly at different heights. Add leafy cover and resting spaces without blocking airflow. Keep the feeding ledge and water accessible."
+        },
+        {
+          "title": "Manage humidity",
+          "body": "Fit a hygrometer and follow the care sheet’s misting guidance. Provide ventilation and drying periods; constant wetness is not the goal."
+        },
+        {
+          "title": "Run it before move-in",
+          "body": "Measure conditions at the animal’s resting and climbing positions across day and night. Check that temperatures and humidity remain appropriate before adding the gecko."
+        }
+      ],
+      "note": "Never house a gecko in a sealed decorative terrarium. This build guide does not replace complete species care, feeding, or veterinary advice.",
+      "sources": [
+        {
+          "label": "RSPCA — Crested gecko care sheet",
+          "url": "https://www.rspca.org.uk/documents/1494939/7712578/Crested+gecko+care+sheet+(PDF+676KB).pdf/4a4aab54-0a6b-b401-6ee4-c2f88fbd2ad3"
+        }
+      ],
+      "published": true
+    },
+    {
+      "title": "A dry habitat for leopard geckos",
+      "animal": "Leopard gecko",
+      "summary": "Create a roomy floor plan with warm and cool areas, secure hides, and a separate humid retreat.",
+      "difficulty": "Intermediate",
+      "materials": "Secure, ventilated horizontal vivarium\nWarm hide, cool hide, and humid hide\nSuitable substrate or easy-clean initial flooring\nShallow water dish\nSpecies-appropriate heat source and thermostat\nDigital probe thermometers\nSuitable UVB lighting and timer",
+      "steps": [
+        {
+          "title": "Give the floor room",
+          "body": "Choose a horizontal enclosure with space for movement and distinct warm and cool areas. The Royal Veterinary College recommends at least 36 × 18 × 18 inches; larger usable space is welcome."
+        },
+        {
+          "title": "Set up the heat gradient",
+          "body": "Install a suitable heat source at one end, controlled by a compatible thermostat. Measure temperatures where the gecko actually rests. Follow the full care sheet for temperature targets."
+        },
+        {
+          "title": "Place three retreats",
+          "body": "Provide hides on the warm and cool sides plus a separate humid hide for shedding. Keep general conditions dry; do not turn the whole habitat into a humid moss garden."
+        },
+        {
+          "title": "Choose suitable flooring",
+          "body": "Select substrate for the animal’s age and health. Avoid calcium sand and rough or loose-loop carpet. An easy-clean initial setup helps you monitor a new animal."
+        },
+        {
+          "title": "Arrange stable furnishings",
+          "body": "Secure heavy furnishings so digging cannot make them fall. Add a shallow water dish and safe cover while preserving walking routes."
+        },
+        {
+          "title": "Verify before adding your gecko",
+          "body": "Install suitable UVB and a day/night cycle. Test the enclosure through several cycles and confirm the warm, cool, and humid areas against species care guidance."
+        }
+      ],
+      "note": "This is a dry vivarium build, not a closed tropical terrarium. Review the linked guidance for feeding, supplements, temperatures, and ongoing care.",
+      "sources": [
+        {
+          "label": "Royal Veterinary College — Leopard gecko care",
+          "url": "https://www.rvc.ac.uk/Media/Default/Beaumont%20Sainsbury%20Animal%20Hospital/EXOTICS/Animal%20Care%20Factsheets/Leopard%20gecko%20care%202024%20jh.pdf"
+        },
+        {
+          "label": "RSPCA — Leopard gecko care",
+          "url": "https://www.rspca.org.uk/adviceandwelfare/pets/other/leopardgecko"
+        }
+      ],
+      "published": true
+    }
+  ]
+}
