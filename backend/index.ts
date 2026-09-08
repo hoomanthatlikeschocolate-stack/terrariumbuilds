@@ -10,7 +10,18 @@ const clean=(v:unknown,max=1000)=>String(v??'').trim().slice(0,max);
 const url=(v:unknown)=>{const s=clean(v,2000);if(!s)return '';try{const u=new URL(s);if(u.protocol==='https:'&&!u.username&&!u.password)return u.href;}catch{}throw new Error('Use a valid https:// link.');};
 const id=(v:unknown)=>{const s=clean(v,40);if(!/^[0-9a-f-]{36}$/.test(s))throw new Error('Invalid record.');return s;};
 const json=(v:unknown,status=200)=>new Response(JSON.stringify(v),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
-const DEFAULT_ASSETS={logo_url:'https://raw.githubusercontent.com/hoomanthatlikeschocolate-stack/terrariumbuilds/main/public/terrarium-logo.jpg',hero_url:'https://images.unsplash.com/photo-1767131543136-4af77f4d419b?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=82&w=1600',hero_alt:'A lush planted glass terrarium with moss, ferns, wood, stones, and layered soil',hero_caption:'A little world, built by hand.'};
+const DEFAULT_ASSETS={logo_url:'https://raw.githubusercontent.com/hoomanthatlikeschocolate-stack/terrariumbuilds/main/public/terrarium-logo.jpg',hero_url:'https://images.unsplash.com/photo-1767131543136-4af77f4d419b?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=82&w=1600',hero_alt:'A lush planted glass terrarium with moss, ferns, wood, stones, and layered soil',hero_caption:'A little world, built by hand.',logo_credit:'',logo_credit_url:'',hero_credit:'',hero_credit_url:''};
+function siteAssets(b:any,previous:any={}){
+  const assets:any={...previous,logo_url:url(b.logo_url)||DEFAULT_ASSETS.logo_url,hero_url:url(b.hero_url)||DEFAULT_ASSETS.hero_url,hero_alt:clean(b.hero_alt,180)||DEFAULT_ASSETS.hero_alt,hero_caption:clean(b.hero_caption,180)||DEFAULT_ASSETS.hero_caption};
+  for(const prefix of ['logo','hero'] as const){
+    const unchanged=assets[prefix+'_url']===(previous[prefix+'_url']||DEFAULT_ASSETS[`${prefix}_url`]);
+    const value=(key:string)=>b[key]===undefined?(unchanged?previous[key]:''):b[key];
+    assets[prefix+'_credit']=clean(value(prefix+'_credit'),180);
+    const rawCreditUrl=clean(value(prefix+'_credit_url'),2000);
+    assets[prefix+'_credit_url']=rawCreditUrl?url(rawCreditUrl):'';
+  }
+  return assets;
+}
 async function db(table:string,query='',method='GET',body?:unknown){const r=await fetch(`${U}/rest/v1/${table}${query?'?'+query:''}`,{method,headers:H,body:body===undefined?undefined:JSON.stringify(body)});const d=await r.json().catch(()=>null);if(!r.ok){console.error('Database failure',table,r.status,d?.code);throw new Error('Could not save or load data. Please try again.');}return d;}
 async function rate(key:string,max=12){const k=await sha(key);const since=new Date(Date.now()-15*60*1000).toISOString();const rows=await db('tb_attempts',`key=eq.${k}&created_at=gt.${encodeURIComponent(since)}&select=id&limit=${max}`);if(rows.length>=max)throw new Error('Too many attempts. Try again in 15 minutes.');await db('tb_attempts','','POST',{key:k});}
 async function issue(username:string|null,kind:string,seconds:number){const token=crypto.randomUUID()+crypto.randomUUID();await db('tb_sessions','','POST',{token_hash:await sha(token),username,kind,expires_at:new Date(Date.now()+seconds*1000).toISOString()});return token;}
@@ -75,8 +86,8 @@ Deno.serve(async(req:Request)=>{
     if(!user||user.role!=='owner')return json({error:'Owner login required.'},403);
     if(a==='owner-data')return json(await listCatalog(true));
     if(a==='site-assets-save'){
-      const assets={logo_url:url(b.logo_url),hero_url:url(b.hero_url),hero_alt:clean(b.hero_alt,180)||DEFAULT_ASSETS.hero_alt,hero_caption:clean(b.hero_caption,180)||DEFAULT_ASSETS.hero_caption};
-      const existing=await db('tb_settings','name=eq.site_assets&select=name&limit=1');
+      const existing=await db('tb_settings','name=eq.site_assets&select=name,value&limit=1');
+      const assets=siteAssets(b,existing[0]?.value);
       if(existing[0])await db('tb_settings','name=eq.site_assets','PATCH',{value:assets});
       else await db('tb_settings','','POST',{name:'site_assets',value:assets});
       return json({ok:true,assets:{...DEFAULT_ASSETS,...assets}});
