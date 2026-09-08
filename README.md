@@ -8,7 +8,7 @@ Terrarium shop and animal habitat tutorials, deployed on Vercel with a Supabase 
 - Member registration/login and guest browsing/ordering. Members can view their own requests.
 - Two owner accounts. Ctrl+Alt+H or Owner access opens the gateway, then the owner login.
 - Listings and tutorials: add, edit, delete, publish/unpublish, upload images.
-- Site images: owners can change the global logo, hero photo, caption, and accessibility text; updates are saved in Supabase for every visitor.
+- Site images: owners can change the global logo, hero photo, caption, and accessibility text; updates are saved in Supabase for every visitor. Each site image also has optional credit text and an HTTPS source link. Hero credits appear below the photo; logo credits appear in the footer. Clear both credit fields to hide a credit.
 - Private owner chat, including private image attachments, and an order management view.
 
 ## Deployment
