@@ -10,18 +10,19 @@ const clean=(v:unknown,max=1000)=>String(v??'').trim().slice(0,max);
 const url=(v:unknown)=>{const s=clean(v,2000);if(!s)return '';try{const u=new URL(s);if(u.protocol==='https:'&&!u.username&&!u.password)return u.href;}catch{}throw new Error('Use a valid https:// link.');};
 const id=(v:unknown)=>{const s=clean(v,40);if(!/^[0-9a-f-]{36}$/.test(s))throw new Error('Invalid record.');return s;};
 const json=(v:unknown,status=200)=>new Response(JSON.stringify(v),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
+const DEFAULT_ASSETS={logo_url:'https://raw.githubusercontent.com/hoomanthatlikeschocolate-stack/terrariumbuilds/main/public/terrarium-logo.png',hero_url:'https://images.unsplash.com/photo-1767131543136-4af77f4d419b?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=82&w=1600',hero_alt:'A lush planted glass terrarium with moss, ferns, wood, stones, and layered soil',hero_caption:'A little world, built by hand.'};
 async function db(table:string,query='',method='GET',body?:unknown){const r=await fetch(`${U}/rest/v1/${table}${query?'?'+query:''}`,{method,headers:H,body:body===undefined?undefined:JSON.stringify(body)});const d=await r.json().catch(()=>null);if(!r.ok){console.error('Database failure',table,r.status,d?.code);throw new Error('Could not save or load data. Please try again.');}return d;}
 async function rate(key:string,max=12){const k=await sha(key);const since=new Date(Date.now()-15*60*1000).toISOString();const rows=await db('tb_attempts',`key=eq.${k}&created_at=gt.${encodeURIComponent(since)}&select=id&limit=${max}`);if(rows.length>=max)throw new Error('Too many attempts. Try again in 15 minutes.');await db('tb_attempts','','POST',{key:k});}
 async function issue(username:string|null,kind:string,seconds:number){const token=crypto.randomUUID()+crypto.randomUUID();await db('tb_sessions','','POST',{token_hash:await sha(token),username,kind,expires_at:new Date(Date.now()+seconds*1000).toISOString()});return token;}
 async function getSession(token:string,kind?:string){if(!token||token.length>200)return null;const rows=await db('tb_sessions',`token_hash=eq.${await sha(token)}&expires_at=gt.${encodeURIComponent(new Date().toISOString())}&select=*&limit=1`);const s=rows[0];return s&&(!kind||s.kind===kind)?s:null;}
 async function userFrom(req:Request){const s=await getSession((req.headers.get('authorization')||'').replace(/^Bearer /,''));if(!s||s.kind==='gateway')return null;const users=await db('tb_users',`username=eq.${encodeURIComponent(s.username)}&select=username,role&limit=1`);return users[0]||null;}
-async function listCatalog(all=false){const q=all?'':'&published=eq.true';const [products,tutorials]=await Promise.all([db('tb_products',`select=*&order=created_at.asc${q}`),db('tb_tutorials',`select=*&order=created_at.asc${q}`)]);return {products,tutorials};}
+async function listCatalog(all=false){const q=all?'':'&published=eq.true';const [products,tutorials,settings]=await Promise.all([db('tb_products',`select=*&order=created_at.asc${q}`),db('tb_tutorials',`select=*&order=created_at.asc${q}`),db('tb_settings','name=eq.site_assets&select=value&limit=1')]);return {products,tutorials,assets:{...DEFAULT_ASSETS,...(settings[0]?.value||{})}};}
 function product(b:any){const name=clean(b.name,100);if(!name)throw new Error('Add a product name.');const price=b.price_cents===null||b.price_cents===''?null:Number(b.price_cents),stock=Number(b.stock);if(price!==null&&(!Number.isInteger(price)||price<0||price>10000000))throw new Error('Enter a valid price.');if(!Number.isInteger(stock)||stock<0||stock>100000)throw new Error('Enter valid stock.');return{name,description:clean(b.description,4000),category:clean(b.category,60)||'Supplies',price_cents:price,stock,published:b.published===true,image_url:url(b.image_url),checkout_url:url(b.checkout_url),updated_at:new Date().toISOString()};}
 function tutorial(b:any){const title=clean(b.title,150),animal=clean(b.animal,70);const steps=Array.isArray(b.steps)?b.steps.slice(0,30).map((s:any)=>({title:clean(s.title,150),body:clean(s.body,5000)})).filter((s:any)=>s.title&&s.body):[];if(!title||!animal||!steps.length)throw new Error('Add a title, animal, and at least one complete step.');return{title,animal,summary:clean(b.summary,1000),difficulty:clean(b.difficulty,40)||'Beginner',materials:clean(b.materials,5000),steps,note:clean(b.note,3000),sources:Array.isArray(b.sources)?b.sources.slice(0,10).map((s:any)=>({label:clean(s.label,150),url:url(s.url)})).filter((s:any)=>s.url):[],image_url:url(b.image_url),published:b.published===true,updated_at:new Date().toISOString()};}
 Deno.serve(async(req:Request)=>{
   if(!['GET','POST'].includes(req.method))return json({error:'Method not allowed'},405);
   const a=new URL(req.url).searchParams.get('action')||'catalog';
-  const post=new Set(['gateway','login','register','owner-login','logout','product-save','product-delete','tutorial-save','tutorial-delete','chat-send','upload','order-create','order-status']);
+  const post=new Set(['gateway','login','register','owner-login','logout','product-save','product-delete','tutorial-save','tutorial-delete','site-assets-save','chat-send','upload','order-create','order-status']);
   if(post.has(a)&&req.method!=='POST')return json({error:'Method not allowed'},405);
   try{
     if(Number(req.headers.get('content-length')||0)>4800000)return json({error:'File too large'},413);
@@ -73,6 +74,13 @@ Deno.serve(async(req:Request)=>{
     }
     if(!user||user.role!=='owner')return json({error:'Owner login required.'},403);
     if(a==='owner-data')return json(await listCatalog(true));
+    if(a==='site-assets-save'){
+      const assets={logo_url:url(b.logo_url),hero_url:url(b.hero_url),hero_alt:clean(b.hero_alt,180)||DEFAULT_ASSETS.hero_alt,hero_caption:clean(b.hero_caption,180)||DEFAULT_ASSETS.hero_caption};
+      const existing=await db('tb_settings','name=eq.site_assets&select=name&limit=1');
+      if(existing[0])await db('tb_settings','name=eq.site_assets','PATCH',{value:assets});
+      else await db('tb_settings','','POST',{name:'site_assets',value:assets});
+      return json({ok:true,assets:{...DEFAULT_ASSETS,...assets}});
+    }
     if(a==='product-save'||a==='tutorial-save'){
       const table=a==='product-save'?'tb_products':'tb_tutorials';const row=a==='product-save'?product(b):tutorial(b);
       const d=await db(table,b.id?`id=eq.${id(b.id)}`:'',b.id?'PATCH':'POST',row);
