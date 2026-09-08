@@ -2,6 +2,7 @@ create table public.tb_users(username text primary key, role text not null check
 create unique index tb_only_two_owners on public.tb_users(username) where role='owner';
 alter table public.tb_users add constraint tb_owner_names check(role<>'owner' or username in ('greyson','expireddumpling'));
 create table public.tb_settings(name text primary key,value jsonb not null);
+insert into public.tb_settings(name,value) values('site_assets','{"logo_url":"https://raw.githubusercontent.com/hoomanthatlikeschocolate-stack/terrariumbuilds/main/public/terrarium-logo.png","hero_url":"https://images.unsplash.com/photo-1767131543136-4af77f4d419b?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=82&w=1600","hero_alt":"A lush planted glass terrarium with moss, ferns, wood, stones, and layered soil","hero_caption":"A little world, built by hand."}'::jsonb) on conflict(name) do nothing;
 create table public.tb_sessions(token_hash text primary key,username text references public.tb_users(username) on delete cascade,kind text not null check(kind in ('gateway','owner','member')),expires_at timestamptz not null);
 create index on public.tb_sessions(expires_at);
 create index on public.tb_sessions(username);
