@@ -1,4 +1,4 @@
-const ENDPOINT='https://yhqyijxivqxnwdbbgsno.supabase.co/functions/v1/terrariumbuilds-api';
+const ENDPOINT='https://yhqyijxivqxnwdbbgsno.supabase.co/functions/v1/terrariumbuilds-api-v2';
 module.exports=async function handler(req,res){
   res.setHeader('Cache-Control','no-store');
   if(!['GET','POST'].includes(req.method))return res.status(405).json({error:'Method not allowed'});
