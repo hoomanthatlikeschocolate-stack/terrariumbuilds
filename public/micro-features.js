@@ -24,35 +24,43 @@
   function startChameleonHug(x,y){
     if(hugBusy||reduced()||coarse())return;
     hugBusy=true;
+
     const fake=document.createElement('div');
-    fake.className='tb-frozen-cursor';fake.style.left=x+'px';fake.style.top=y+'px';
+    fake.className='tb-frozen-cursor';
+    fake.style.left=x+'px';
+    fake.style.top=y+'px';
+
     const cham=document.createElement('div');
-    cham.className='tb-hug-chameleon';cham.style.left=x+'px';cham.style.top=y+'px';
-    cham.innerHTML='<span class="tb-cham-body">🦎</span><span class="tb-paw tb-paw-left"></span><span class="tb-paw tb-paw-right"></span><span class="tb-hug-heart">♥</span>';
+    cham.className='tb-hug-chameleon';
+    cham.style.left=x+'px';
+    cham.style.top=y+'px';
+    cham.innerHTML='<span class="tb-cham-body">🦎</span><span class="tb-hug-arm tb-hug-arm-top"></span><span class="tb-hug-arm tb-hug-arm-bottom"></span><span class="tb-hug-heart">♥</span>';
+
     document.body.append(fake,cham);
     document.documentElement.classList.add('tb-cursor-held');
 
     requestAnimationFrame(()=>cham.classList.add('is-arriving'));
-    setTimeout(()=>cham.classList.add('is-hugging'),330);
-    setTimeout(()=>cham.classList.add('is-squeezing'),690);
-    setTimeout(()=>cham.classList.add('is-releasing'),1550);
-    setTimeout(()=>cham.classList.add('is-leaving'),1780);
+    setTimeout(()=>cham.classList.add('is-wrapping'),360);
+    setTimeout(()=>cham.classList.add('is-hugging'),650);
+    setTimeout(()=>cham.classList.add('is-releasing'),1420);
+    setTimeout(()=>cham.classList.add('is-leaving'),1690);
     setTimeout(()=>{
       document.documentElement.classList.remove('tb-cursor-held');
-      fake.remove();cham.remove();hugBusy=false;
-    },2220);
+      fake.remove();
+      cham.remove();
+      hugBusy=false;
+    },2080);
   }
 
+  // The chameleon easter egg ONLY runs when the dark-green top strip is clicked.
   document.addEventListener('click',e=>{
-    const interactive=e.target.closest?.('button,a,input,textarea,select,label,dialog,.chatbox,[contenteditable]');
-    if(interactive)return;
-    if(reduced()||coarse())return;
-    e.stopPropagation();
+    const bar=e.target.closest?.('.topline');
+    if(!bar||reduced()||coarse())return;
     const now=Date.now(),last=Number(sessionStorage.getItem('tb-hug-last')||0);
-    if(now-last<6500)return;
+    if(now-last<4200||hugBusy)return;
     sessionStorage.setItem('tb-hug-last',String(now));
     startChameleonHug(e.clientX,e.clientY);
-  },true);
+  });
 
   document.addEventListener('click',e=>{
     const add=e.target.closest?.('[data-add]');if(!add||add.disabled)return;
