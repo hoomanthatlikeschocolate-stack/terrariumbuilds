@@ -24,20 +24,25 @@
   function startChameleonHug(x,y){
     if(hugBusy||reduced()||coarse())return;
     hugBusy=true;
-    const fake=document.createElement('div');fake.className='tb-frozen-cursor';fake.style.left=x+'px';fake.style.top=y+'px';
-    const cham=document.createElement('div');cham.className='tb-hug-chameleon';cham.style.left=x+'px';cham.style.top=y+'px';
-    cham.innerHTML='<span class="tb-cham-body">🦎</span><span class="tb-arm tb-arm-one"></span><span class="tb-arm tb-arm-two"></span><span class="tb-hug-heart">♥</span>';
-    document.body.append(fake,cham);document.documentElement.classList.add('tb-cursor-held');
-    requestAnimationFrame(()=>cham.classList.add('is-hugging'));
-    setTimeout(()=>cham.classList.add('is-squeezing'),420);
-    setTimeout(()=>cham.classList.add('is-leaving'),2050);
+    const fake=document.createElement('div');
+    fake.className='tb-frozen-cursor';fake.style.left=x+'px';fake.style.top=y+'px';
+    const cham=document.createElement('div');
+    cham.className='tb-hug-chameleon';cham.style.left=x+'px';cham.style.top=y+'px';
+    cham.innerHTML='<span class="tb-cham-body">🦎</span><span class="tb-paw tb-paw-left"></span><span class="tb-paw tb-paw-right"></span><span class="tb-hug-heart">♥</span>';
+    document.body.append(fake,cham);
+    document.documentElement.classList.add('tb-cursor-held');
+
+    requestAnimationFrame(()=>cham.classList.add('is-arriving'));
+    setTimeout(()=>cham.classList.add('is-hugging'),330);
+    setTimeout(()=>cham.classList.add('is-squeezing'),690);
+    setTimeout(()=>cham.classList.add('is-releasing'),1550);
+    setTimeout(()=>cham.classList.add('is-leaving'),1780);
     setTimeout(()=>{
       document.documentElement.classList.remove('tb-cursor-held');
       fake.remove();cham.remove();hugBusy=false;
-    },2550);
+    },2220);
   }
 
-  // Capture background clicks so the older critter click handler never fires.
   document.addEventListener('click',e=>{
     const interactive=e.target.closest?.('button,a,input,textarea,select,label,dialog,.chatbox,[contenteditable]');
     if(interactive)return;
@@ -49,13 +54,11 @@
     startChameleonHug(e.clientX,e.clientY);
   },true);
 
-  // Little leaf celebration when someone adds something to their bag.
   document.addEventListener('click',e=>{
     const add=e.target.closest?.('[data-add]');if(!add||add.disabled)return;
     const r=add.getBoundingClientRect();burstLeaves(r.left+r.width/2,r.top+r.height/2,8);
   });
 
-  // Three quick logo clicks makes the header briefly "grow" moss.
   let logoClicks=[];
   document.addEventListener('click',e=>{
     const logo=e.target.closest?.('.brand-logo');if(!logo||reduced())return;
@@ -68,7 +71,6 @@
     setTimeout(()=>header.classList.remove('tb-moss-bloom'),4200);
   });
 
-  // A tiny frog occasionally peeks in. It is intentionally rare and dismisses itself.
   function frogPeek(){
     if(reduced()||coarse()||document.querySelector('.tb-frog-peek')||document.visibilityState!=='visible')return;
     const frog=document.createElement('button');frog.type='button';frog.className='tb-frog-peek';frog.setAttribute('aria-label','A tiny frog is peeking at the page');
@@ -80,7 +82,6 @@
   }
   setTimeout(frogPeek,22000);
 
-  // A subtle vine shows reading progress without taking over the page.
   const vine=document.createElement('div');vine.className='tb-vine-progress';vine.innerHTML='<span></span>';document.body.appendChild(vine);
   let ticking=false;
   const updateVine=()=>{
@@ -90,7 +91,6 @@
   };
   addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(updateVine);}},{passive:true});updateVine();
 
-  // Soft card tilt: visual only, no layout movement.
   document.addEventListener('pointermove',e=>{
     if(reduced()||coarse())return;
     const card=e.target.closest?.('.product,.guide,.animal-card,.animal-fact-card,.info-care-card');if(!card)return;
