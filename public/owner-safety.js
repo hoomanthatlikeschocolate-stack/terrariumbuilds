@@ -49,7 +49,6 @@
   const oldProduct=editProduct;
   editProduct=function(id){oldProduct(id);prepareEditor();};
 
-  // Owner listing/tutorial editors can only be closed with their X (or after a successful save).
   document.addEventListener('click',e=>{
     if(activeEditor()&&e.target===modalEl){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}
   },true);
@@ -66,7 +65,6 @@
     const fixed=normalizeLink(el.value);if(fixed!==el.value){el.value=fixed;saveDraft(el.form);}
   });
 
-  // Be forgiving with links and point to the exact source line when one really is invalid.
   document.addEventListener('submit',e=>{
     const f=e.target;if(!['tutorial-form','product-form'].includes(f.id))return;
     saveDraft(f);
@@ -106,7 +104,6 @@
     return oldToast(message);
   };
 
-  // Keep owner chat exactly where the owner left it when background refreshes happen.
   const oldLoadChat=loadChat;
   loadChat=async function(forceBottom=false){
     const before=document.querySelector('#messages');
@@ -126,5 +123,16 @@
       img.addEventListener('load',settle,{once:true});
       img.addEventListener('error',settle,{once:true});
     });
+  };
+
+  // Public tutorials: give care notes a real heading and preserve typed line/paragraph breaks.
+  const oldArticle=article;
+  article=function(id){
+    oldArticle(id);
+    const t=state.tutorials.find(x=>x.id===id);
+    if(!t?.note)return;
+    const notice=document.querySelector('.article .notice');if(!notice)return;
+    const paragraphs=String(t.note).replace(/\r\n?/g,'\n').split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean);
+    notice.innerHTML='<h2 class="care-notes-title">Care Notes</h2>'+paragraphs.map(p=>'<p>'+esc(p).replace(/\n/g,'<br>')+'</p>').join('');
   };
 })();
