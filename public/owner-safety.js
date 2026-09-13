@@ -105,4 +105,26 @@
     if(message==='Listing saved.')try{localStorage.removeItem('tb-owner-product-draft');}catch{}
     return oldToast(message);
   };
+
+  // Keep owner chat exactly where the owner left it when background refreshes happen.
+  const oldLoadChat=loadChat;
+  loadChat=async function(forceBottom=false){
+    const before=document.querySelector('#messages');
+    const wasAtBottom=before?before.scrollHeight-before.scrollTop-before.clientHeight<80:true;
+    const oldTop=before?.scrollTop||0;
+    const oldHeight=before?.scrollHeight||0;
+    await oldLoadChat(forceBottom);
+    const el=document.querySelector('#messages');if(!el)return;
+    const settle=()=>{
+      if(forceBottom||wasAtBottom){el.scrollTop=el.scrollHeight;return;}
+      const growth=el.scrollHeight-oldHeight;
+      el.scrollTop=Math.max(0,oldTop+growth);
+    };
+    requestAnimationFrame(()=>requestAnimationFrame(settle));
+    el.querySelectorAll('img').forEach(img=>{
+      if(img.complete)return;
+      img.addEventListener('load',settle,{once:true});
+      img.addEventListener('error',settle,{once:true});
+    });
+  };
 })();
