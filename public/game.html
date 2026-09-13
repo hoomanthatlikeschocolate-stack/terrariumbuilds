@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#183a29">
+  <title>TerrariumBuilds 3D — Beta</title>
+  <link rel="stylesheet" href="/game.css?v=0.0.1-beta">
+</head>
+<body>
+  <div id="game-shell">
+    <canvas id="game" aria-label="TerrariumBuilds 3D beta game"></canvas>
+    <div id="hud">
+      <div class="brand-chip"><strong>TerrariumBuilds 3D</strong><span>VERY BETA · v0.0.1</span></div>
+      <div class="stats">
+        <div><span>Coins</span><strong id="coins">25</strong></div>
+        <div><span>You</span><strong id="hunger">100%</strong></div>
+        <div><span>Pet</span><strong id="pet-health">100%</strong></div>
+        <div><span>Time</span><strong id="clock">8:00 AM</strong></div>
+      </div>
+    </div>
+
+    <div id="objective" class="panel">
+      <strong id="objective-title">First night challenge</strong>
+      <span id="objective-text">Make the starter enclosure safe enough for tonight.</span>
+    </div>
+
+    <div id="prompt" class="prompt" hidden></div>
+
+    <div id="help" class="panel">
+      <strong>Controls</strong>
+      <span>WASD / arrows · move</span>
+      <span>Mouse · look</span>
+      <span>E · interact</span>
+      <span>B · terrarium build menu</span>
+    </div>
+
+    <div id="build-panel" class="modal-card" hidden>
+      <div class="modal-head"><div><span class="eyebrow">Starter habitat</span><h2>Build the terrarium</h2></div><button id="close-build" type="button">×</button></div>
+      <p>You start with a plastic tub. Add what you can collect or afford.</p>
+      <div id="build-status" class="build-status"></div>
+      <div class="build-grid">
+        <button type="button" data-build="substrate"><span>🟫</span><b>Substrate</b><small>2 leaf litter</small></button>
+        <button type="button" data-build="leaves"><span>🍂</span><b>Leaf litter</b><small>1 leaf litter</small></button>
+        <button type="button" data-build="grass"><span>🌿</span><b>Grass cover</b><small>2 grass</small></button>
+        <button type="button" data-build="hide"><span>🪵</span><b>Hide</b><small>8 coins</small></button>
+        <button type="button" data-build="water"><span>💧</span><b>Water dish</b><small>6 coins</small></button>
+      </div>
+      <div class="inventory-line">Inventory: <strong id="inv-leaves">0</strong> leaf litter · <strong id="inv-grass">0</strong> grass</div>
+    </div>
+
+    <div id="shop-panel" class="modal-card" hidden>
+      <div class="modal-head"><div><span class="eyebrow">Town store</span><h2>Pet & habitat shop</h2></div><button id="close-shop" type="button">×</button></div>
+      <div class="shop-grid">
+        <button type="button" data-buy="hide"><span>🪵</span><b>Cork hide</b><small>8 coins</small></button>
+        <button type="button" data-buy="water"><span>💧</span><b>Water dish</b><small>6 coins</small></button>
+        <button type="button" data-buy="food"><span>🪱</span><b>Pet food</b><small>4 coins</small></button>
+        <button type="button" data-buy="meal"><span>🥪</span><b>Food for you</b><small>5 coins</small></button>
+      </div>
+    </div>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+    <a class="back-link" href="/">← Back to website</a>
+  </div>
+  <script type="module" src="/game.js?v=0.0.1-beta"></script>
+</body>
+</html>
