@@ -4,6 +4,9 @@
   const coarse=()=>matchMedia('(pointer: coarse)').matches;
   let hugBusy=false;
 
+  // Disable the older background-click critter handler left in the legacy UX layer.
+  try{sessionStorage.setItem('tb-critter-last',String(Date.now()+31536000000));}catch{}
+
   function burstLeaves(x,y,count=9){
     if(reduced())return;
     const glyphs=['🍃','🌿','☘️'];
@@ -34,14 +37,14 @@
     cham.className='tb-hug-chameleon';
     cham.style.left=x+'px';
     cham.style.top=y+'px';
-    cham.innerHTML='<span class="tb-cham-body">🦎</span><span class="tb-hug-arm tb-hug-arm-top"></span><span class="tb-hug-arm tb-hug-arm-bottom"></span><span class="tb-hug-heart">♥</span>';
+    cham.innerHTML='<span class="tb-cham-body">🦎</span><span class="tb-hug-heart">♥</span>';
 
     document.body.append(fake,cham);
     document.documentElement.classList.add('tb-cursor-held');
 
     requestAnimationFrame(()=>cham.classList.add('is-arriving'));
-    setTimeout(()=>cham.classList.add('is-wrapping'),360);
-    setTimeout(()=>cham.classList.add('is-hugging'),650);
+    setTimeout(()=>cham.classList.add('is-cuddling'),360);
+    setTimeout(()=>cham.classList.add('is-snuggling'),660);
     setTimeout(()=>cham.classList.add('is-releasing'),1420);
     setTimeout(()=>cham.classList.add('is-leaving'),1690);
     setTimeout(()=>{
@@ -109,4 +112,13 @@
     const card=e.target.closest?.('.product,.guide,.animal-card,.animal-fact-card,.info-care-card');
     if(card&&!card.contains(e.relatedTarget)){card.classList.remove('tb-tilt');card.style.removeProperty('--tilt-x');card.style.removeProperty('--tilt-y');}
   });
+
+  // Owner panel can re-render its header. Keep only one Quick site tools block.
+  const dedupeOwnerTools=()=>{
+    const groups=[...document.querySelectorAll('.owner-power-tools')];
+    groups.slice(1).forEach(x=>x.remove());
+  };
+  const ownerObserver=new MutationObserver(dedupeOwnerTools);
+  ownerObserver.observe(document.body,{childList:true,subtree:true});
+  dedupeOwnerTools();
 })();
