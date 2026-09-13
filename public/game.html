@@ -4,64 +4,110 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#183a29">
-  <title>TerrariumBuilds 3D — Beta</title>
-  <link rel="stylesheet" href="/game.css?v=0.0.1-beta">
+  <meta name="description" content="TerrariumBuilds 3D beta — build habitats, care for animals, explore town, and live your day.">
+  <title>TerrariumBuilds 3D — Beta 0.0.2</title>
+  <link rel="stylesheet" href="/game.css?v=0.0.2-beta">
 </head>
 <body>
   <div id="game-shell">
     <canvas id="game" aria-label="TerrariumBuilds 3D beta game"></canvas>
+
     <div id="hud">
-      <div class="brand-chip"><strong>TerrariumBuilds 3D</strong><span>VERY BETA · v0.0.1</span></div>
+      <div class="brand-chip"><strong>TerrariumBuilds 3D</strong><span>EARLY BETA · v0.0.2</span></div>
       <div class="stats">
         <div><span>Coins</span><strong id="coins">25</strong></div>
-        <div><span>You</span><strong id="hunger">100%</strong></div>
+        <div><span>Health</span><strong id="health">100%</strong></div>
+        <div><span>Hunger</span><strong id="hunger">100%</strong></div>
+        <div><span>Energy</span><strong id="energy">100%</strong></div>
         <div><span>Pet</span><strong id="pet-health">100%</strong></div>
         <div><span>Time</span><strong id="clock">8:00 AM</strong></div>
       </div>
     </div>
 
-    <div id="objective" class="panel">
+    <div id="objective" class="panel objective-panel">
+      <span class="eyebrow">Current goal</span>
       <strong id="objective-title">First night challenge</strong>
-      <span id="objective-text">Make the starter enclosure safe enough for tonight.</span>
+      <span id="objective-text">Build a safe starter enclosure before midnight.</span>
+    </div>
+
+    <div id="pet-card" class="panel pet-panel">
+      <div class="pet-title"><span>🐸</span><div><strong>Moss</strong><small>Starter toad</small></div></div>
+      <div class="meter"><span>Hunger</span><i><b id="pet-hunger-bar"></b></i><em id="pet-hunger">82%</em></div>
+      <div class="meter"><span>Hydration</span><i><b id="pet-water-bar"></b></i><em id="pet-water">88%</em></div>
+      <div class="meter"><span>Stress</span><i><b id="pet-stress-bar"></b></i><em id="pet-stress">18%</em></div>
     </div>
 
     <div id="prompt" class="prompt" hidden></div>
+    <div id="location-chip">Home neighborhood</div>
 
-    <div id="help" class="panel">
-      <strong>Controls</strong>
-      <span>WASD / arrows · move</span>
-      <span>Mouse · look</span>
-      <span>E · interact</span>
-      <span>B · terrarium build menu</span>
+    <div id="help" class="panel controls-panel">
+      <div class="help-head"><strong>Controls</strong><button id="collapse-help" type="button" aria-label="Collapse controls">−</button></div>
+      <div id="help-body">
+        <span><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint</span>
+        <span><kbd>Space</kbd> jump · mouse look</span>
+        <span><kbd>E</kbd> interact · <kbd>B</kbd> build</span>
+        <span><kbd>I</kbd> backpack · <kbd>M</kbd> map</span>
+        <span><kbd>F</kbd> feed pet · wheel zoom</span>
+        <span><kbd>Esc</kbd> close menus / release mouse</span>
+      </div>
     </div>
 
-    <div id="build-panel" class="modal-card" hidden>
-      <div class="modal-head"><div><span class="eyebrow">Starter habitat</span><h2>Build the terrarium</h2></div><button id="close-build" type="button">×</button></div>
-      <p>You start with a plastic tub. Add what you can collect or afford.</p>
+    <div id="build-panel" class="modal-card wide" hidden>
+      <div class="modal-head"><div><span class="eyebrow">Habitat workshop</span><h2>Build Moss's terrarium</h2></div><button data-close="build-panel" type="button">×</button></div>
+      <p>Build it the way you would in real life: start with the base, add cover, hydration, and places to hide.</p>
       <div id="build-status" class="build-status"></div>
       <div class="build-grid">
-        <button type="button" data-build="substrate"><span>🟫</span><b>Substrate</b><small>2 leaf litter</small></button>
-        <button type="button" data-build="leaves"><span>🍂</span><b>Leaf litter</b><small>1 leaf litter</small></button>
+        <button type="button" data-build="substrate"><span>🟫</span><b>Deep substrate</b><small>2 leaf litter + 1 soil</small></button>
+        <button type="button" data-build="leaves"><span>🍂</span><b>Leaf litter layer</b><small>2 leaf litter</small></button>
+        <button type="button" data-build="moss"><span>🌱</span><b>Moss patch</b><small>2 moss</small></button>
         <button type="button" data-build="grass"><span>🌿</span><b>Grass cover</b><small>2 grass</small></button>
-        <button type="button" data-build="hide"><span>🪵</span><b>Hide</b><small>8 coins</small></button>
-        <button type="button" data-build="water"><span>💧</span><b>Water dish</b><small>6 coins</small></button>
+        <button type="button" data-build="hide"><span>🪵</span><b>Cork hide</b><small>8 coins or owned item</small></button>
+        <button type="button" data-build="water"><span>💧</span><b>Water dish</b><small>6 coins or owned item</small></button>
+        <button type="button" data-build="branch"><span>🪵</span><b>Wood structure</b><small>2 sticks</small></button>
+        <button type="button" data-build="thermometer"><span>🌡️</span><b>Thermometer</b><small>12 coins or owned item</small></button>
       </div>
-      <div class="inventory-line">Inventory: <strong id="inv-leaves">0</strong> leaf litter · <strong id="inv-grass">0</strong> grass</div>
+      <div class="inventory-line" id="build-inventory"></div>
     </div>
 
-    <div id="shop-panel" class="modal-card" hidden>
-      <div class="modal-head"><div><span class="eyebrow">Town store</span><h2>Pet & habitat shop</h2></div><button id="close-shop" type="button">×</button></div>
-      <div class="shop-grid">
-        <button type="button" data-buy="hide"><span>🪵</span><b>Cork hide</b><small>8 coins</small></button>
-        <button type="button" data-buy="water"><span>💧</span><b>Water dish</b><small>6 coins</small></button>
-        <button type="button" data-buy="food"><span>🪱</span><b>Pet food</b><small>4 coins</small></button>
-        <button type="button" data-buy="meal"><span>🥪</span><b>Food for you</b><small>5 coins</small></button>
+    <div id="shop-panel" class="modal-card wide" hidden>
+      <div class="modal-head"><div><span class="eyebrow" id="shop-eyebrow">Town shop</span><h2 id="shop-title">Pet & Habitat Shop</h2></div><button data-close="shop-panel" type="button">×</button></div>
+      <p id="shop-description">Supplies for your animal and enclosure.</p>
+      <div id="shop-grid" class="shop-grid"></div>
+    </div>
+
+    <div id="inventory-panel" class="modal-card" hidden>
+      <div class="modal-head"><div><span class="eyebrow">Backpack</span><h2>Your stuff</h2></div><button data-close="inventory-panel" type="button">×</button></div>
+      <div id="inventory-grid" class="inventory-grid"></div>
+      <div class="inventory-actions"><button id="eat-snack" type="button">Eat a snack</button><button id="drink-water" type="button">Drink water</button><button id="save-game" type="button">Save game</button></div>
+    </div>
+
+    <div id="map-panel" class="modal-card map-card" hidden>
+      <div class="modal-head"><div><span class="eyebrow">Town map</span><h2>TerrariumBuilds Valley</h2></div><button data-close="map-panel" type="button">×</button></div>
+      <div class="map-world" aria-label="Schematic game map">
+        <span class="map-road road-h"></span><span class="map-road road-v"></span>
+        <button type="button" data-map="home" style="left:22%;top:67%">🏠 <b>Home</b></button>
+        <button type="button" data-map="petshop" style="left:55%;top:67%">🦎 <b>Pet Shop</b></button>
+        <button type="button" data-map="diner" style="left:56%;top:39%">🍔 <b>Diner</b></button>
+        <button type="button" data-map="grocery" style="left:72%;top:39%">🛒 <b>Market</b></button>
+        <button type="button" data-map="hardware" style="left:72%;top:67%">🧰 <b>Hardware</b></button>
+        <button type="button" data-map="vet" style="left:55%;top:15%">🏥 <b>Vet</b></button>
+        <button type="button" data-map="forest" style="left:15%;top:20%">🌲 <b>Forest</b></button>
+        <button type="button" data-map="pond" style="left:29%;top:24%">💧 <b>Pond</b></button>
+        <span id="map-you">● YOU</span>
       </div>
+      <p class="map-note">The world is much larger now. Map buttons set a waypoint; they do not teleport you.</p>
+    </div>
+
+    <div id="sleep-panel" class="modal-card" hidden>
+      <div class="modal-head"><div><span class="eyebrow">Your bedroom</span><h2>End the day?</h2></div><button data-close="sleep-panel" type="button">×</button></div>
+      <p>Sleeping restores energy and advances to 7:00 AM. Your animal's habitat and care choices matter overnight.</p>
+      <button class="primary-action" id="sleep-now" type="button">Sleep until morning</button>
     </div>
 
     <div id="toast" role="status" aria-live="polite"></div>
-    <a class="back-link" href="/">← Back to website</a>
+    <div id="crosshair" aria-hidden="true">+</div>
+    <a class="back-link" href="/">← Website</a>
   </div>
-  <script type="module" src="/game.js?v=0.0.1-beta"></script>
+  <script type="module" src="/game.js?v=0.0.2-beta"></script>
 </body>
 </html>
