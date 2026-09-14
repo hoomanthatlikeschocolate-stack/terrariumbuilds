@@ -15,7 +15,7 @@
   async function importWithTimeout(url,ms=12000){let timer;try{return await Promise.race([import(url),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Timed out loading '+url)),ms);})]);}finally{clearTimeout(timer);}}
 
   async function loadThree(){
-    const attempts=[['/api/three.js?v=0.0.10','TerrariumBuilds engine'],['https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js','jsDelivr backup'],['https://unpkg.com/three@0.160.1/build/three.module.js','unpkg backup']];
+    const attempts=[['/api/three.js?v=0.0.11','TerrariumBuilds engine'],['https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js','jsDelivr backup'],['https://unpkg.com/three@0.160.1/build/three.module.js','unpkg backup']];
     const errors=[];
     for(let i=0;i<attempts.length;i++){
       const [url,label]=attempts[i];
@@ -27,23 +27,15 @@
 
   async function runGame(THREE){
     status('Checking game code…');
-    const r=await fetch('/game-v006.js?v=0.0.10',{cache:'no-store'});
+    const r=await fetch('/game-v006.js?v=0.0.11',{cache:'no-store'});
     if(!r.ok)throw new Error('game file returned HTTP '+r.status);
     let code=await r.text();
     const before=code;
     code=code.replace(/^\s*import\s+\*\s+as\s+THREE\s+from\s+['"][^'"]+['"];?\s*/,'');
     if(code===before)throw new Error('game loader could not remove the old Three.js import line');
 
-    // v0.0.10 syntax repair: minification accidentally collapsed ternaries whose
-    // true branch began with a decimal into optional-chaining-looking tokens.
-    // `sprint ? .65 : .45` became `sprint?.65:.45`, and the same happened to
-    // the frog-water decay expression. Chrome correctly rejected both at parse time.
-    code=code.replaceAll('sprint?.65:.45','sprint ? .65 : .45');
-    code=code.replaceAll('state.built.water?.006:.015','state.built.water ? .006 : .015');
-
-    // Parse-check before execution so syntax failures are reported separately.
     let fn;
-    try{fn=new Function('THREE',code+'\n//# sourceURL=terrariumbuilds-game-v010.js');}
+    try{fn=new Function('THREE',code+'\n//# sourceURL=terrariumbuilds-game-v011.js');}
     catch(err){throw new Error('game syntax check failed: '+(err?.message||String(err)));}
 
     status('Building neighborhood…');
