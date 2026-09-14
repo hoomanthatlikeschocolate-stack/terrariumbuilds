@@ -37,7 +37,6 @@ function plane(x,y,z,w,d,m,parent=scene){const o=new THREE.Mesh(new THREE.PlaneG
 function sph(x,y,z,r,m,parent=scene){const o=new THREE.Mesh(new THREE.SphereGeometry(r,14,10),m instanceof THREE.Material?m:mat(m));o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
 function cyl(x,y,z,r,h,m,parent=scene){const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,10),m instanceof THREE.Material?m:mat(m));o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
 
-// Lightweight neighborhood first: render quickly, then decorate after the first frame.
 plane(0,0,0,360,360,0x749a66);
 plane(0,.015,0,260,14,0x666a67);plane(0,.016,-88,260,12,0x666a67);plane(88,.017,0,12,260,0x666a67);
 const places={home:{x:-58,z:-56,label:'Home'},petshop:{x:52,z:-56,label:'Pet & Habitat Shop'},diner:{x:48,z:50,label:'Willow Diner'},market:{x:108,z:50,label:'Town Market'},hardware:{x:112,z:-56,label:'Hardware & Garden'}};
@@ -48,23 +47,19 @@ const zones={outside:new THREE.Vector3(-50,0,-36),home:new THREE.Vector3(0,0,410
 function room(cx,floor=0xb99f7d){plane(cx,.02,425,38,29,floor);box(cx-19,0,425,.3,4.5,29,0xe8e3d9);box(cx+19,0,425,.3,4.5,29,0xe8e3d9);box(cx,0,410.5,38,4.5,.3,0xe8e3d9);box(cx,0,439.5,38,4.5,.3,0xe8e3d9)}
 room(0,0xa78669);room(90,0xd5d2ca);room(180,0xd5d2ca);room(270,0xd5d2ca);room(360,0xd5d2ca);
 
-// House interior.
 box(-10,.1,419,7,.8,3,0x7c6956);box(-10,.9,420.2,7,1.4,.3,0x6d5d4e);box(-5,.1,419,2.4,.55,1.3,0x76553d);
 for(let i=0;i<4;i++)box(5+i*2.7,.1,414,2.4,2.4,2.1,0xd8d5ce);box(10,.1,418,4.2,.9,2.3,0xb49b7b);box(5,.1,421,2.7,3.5,2.5,0xd3d5d2);
 box(-4,.1,434,6,.8,3.5,0xd5c1a7);box(9,.1,434,5.5,1,2.6,0x76553d);box(13,.1,424,2.2,2.5,1.1,0xd7d9d8);
 const tubProp=new THREE.Group();scene.add(tubProp);tubProp.position.set(1.8,1.3,415.4);box(0,0,0,1.7,.55,1.1,glass,tubProp);box(0,.58,0,1.82,.12,1.2,0xb6d6de,tubProp);
-
 function register(x){box(x,.1,434,4.8,1,2,0x705c49);box(x,1.12,433.8,1.1,.6,.7,0x303534)}
 for(const x of [102,192,282,372])register(x);
 function npc(x,c){const g=new THREE.Group();scene.add(g);g.position.set(x,0,431);box(0,1,0,.9,1.05,.48,c,g);sph(0,2.25,0,.35,0xd3a079,g);for(const sx of [-.22,.22])box(sx,.15,0,.2,.8,.24,0x3d4550,g)}
 npc(102,0x567c61);npc(192,0x9a594b);npc(282,0x6d7d72);npc(372,0x7b6a50);
 
-// Player.
 const player=new THREE.Group();scene.add(player);const body=new THREE.Group();player.add(body);const skin=mat(0xd6a276),shirt=mat(0x2f5c43),pants=mat(0x354150);
 box(0,1.02,0,.88,.45,.48,pants,body);box(0,1.38,0,1.03,1.08,.5,shirt,body);sph(0,2.48,0,.38,skin,body);sph(0,2.65,.04,.38,0x30251f,body);
 const la=new THREE.Group(),ra=new THREE.Group(),ll=new THREE.Group(),rl=new THREE.Group();la.position.set(-.64,1.87,0);ra.position.set(.64,1.87,0);ll.position.set(-.24,1.1,0);rl.position.set(.24,1.1,0);body.add(la,ra,ll,rl);for(const g of [la,ra])cyl(0,-.45,0,.15,.9,shirt,g);for(const g of [ll,rl])cyl(0,-.62,0,.17,1.2,pants,g);
 
-// Frog and temporary habitat.
 const frog=new THREE.Group();scene.add(frog);frog.position.set(-43,.12,-31);sph(0,.22,0,.38,0x648248,frog);sph(-.22,.42,-.18,.13,0x6f8c52,frog);sph(.22,.42,-.18,.13,0x6f8c52,frog);
 const habitat=new THREE.Group();scene.add(habitat);habitat.position.set(-4,1,434);habitat.visible=false;box(0,0,0,3.8,1.45,2.6,glass,habitat);const hsoil=box(0,.05,0,3.45,.25,2.25,0x5e4430,habitat);hsoil.visible=false;const hdish=cyl(-1,.2,-.55,.4,.12,0x79b6ca,habitat);hdish.visible=false;const hhide=cyl(.65,.45,.15,.45,1.2,0x76553d,habitat);hhide.rotation.z=Math.PI/2;hhide.visible=false;
 
@@ -82,7 +77,7 @@ function enter(zone){state.zone=zone;player.position.copy(zones[zone]);ui.locati
 function open(id){$$('.dialog').forEach(x=>x.hidden=true);$(id).hidden=false;paused=true;document.exitPointerLock?.()}
 function closeAll(){$$('.dialog').forEach(x=>x.hidden=true);paused=false}
 function story(title,body){$('#dialog-title').textContent=title;$('#dialog-body').innerHTML=body;open('#story-dialog')}
-function detect(){near=null;if(state.zone==='outside'){if(!state.frogCaught&&dist(-43,-31)<2.5)near={t:'frog',label:'E · carefully catch the frog'};if(dist(-58,-45)<7)near={t:'enter',zone:'home',label:'E · enter your house'};for(const [k,p] of Object.entries(places)){if(k==='home')continue;if(dist(p.x,p.z)<10)near={t:'enter',zone:k,label:`E · enter ${p.label}`}}}else{const exits={home:[0,410],petshop:[90,410],diner:[180,410],market:[270,410],hardware:[360,410]};const ex=exits[state.zone];if(ex&&dist(ex[0],ex[1])<3)near={t:'exit',label:'E · go outside'};if(state.zone==='home'){if(!state.hasTub&&dist(1.8,415.4)<2.8)near={t:'tub',label:'E · take the clean Tupperware'};if(state.hasTub&&!state.habitatPlaced&&dist(-4,434)<3.5)near={t:'place',label:'E · place Tupperware on dining table'};if(state.habitatPlaced&&dist(-4,434)<4)near={t:'build',label:'E · inspect habitat · B build'};if(dist(10,434)<2.8)near={t:'sleep',label:'E · sleep / end day'}}else{const reg={petshop:[102,434],diner:[192,434],market:[282,434],hardware:[372,434]}[state.zone];if(reg&&dist(reg[0],reg[1])<3.8)near={t:'npc',kind:state.zone,label:'E · talk to cashier'}}ui.prompt.hidden=!near;if(near)ui.prompt.textContent=near.label}
+function detect(){near=null;if(state.zone==='outside'){if(!state.frogCaught&&dist(-43,-31)<2.5)near={t:'frog',label:'E · carefully catch the frog'};if(dist(-58,-45)<7)near={t:'enter',zone:'home',label:'E · enter your house'};for(const [k,p] of Object.entries(places)){if(k==='home')continue;if(dist(p.x,p.z)<10)near={t:'enter',zone:k,label:`E · enter ${p.label}`}}}else{const exits={home:[0,410],petshop:[90,410],diner:[180,410],market:[270,410],hardware:[360,410]};const ex=exits[state.zone];if(ex&&dist(ex[0],ex[1])<3)near={t:'exit',label:'E · go outside'};if(state.zone==='home'){if(!state.hasTub&&dist(1.8,415.4)<2.8)near={t:'tub',label:'E · take the clean Tupperware'};if(state.hasTub&&!state.habitatPlaced&&dist(-4,434)<3.5)near={t:'place',label:'E · place Tupperware on dining table'};if(state.habitatPlaced&&dist(-4,434)<4)near={t:'build',label:'E · inspect habitat · B build'};if(dist(10,434)<2.8)near={t:'sleep',label:'E · sleep / end day'}}else{const reg={petshop:[102,434],diner:[192,434],market:[282,434],hardware:[372,434]}[state.zone];if(reg&&dist(reg[0],reg[1])<3.8)near={t:'npc',kind:state.zone,label:'E · talk to cashier'}}ui.prompt.hidden=!near;if(near)ui.prompt.textContent=near.label}}
 function interact(){if(paused||!near)return;const n=near;if(n.t==='frog'){state.frogCaught=true;state.story=Math.max(state.story,2);story('You caught the frog','<p>You gently secure the frog. Now you need a temporary enclosure.</p><button class="primary" data-action="home">Go inside</button>');hud();save()}else if(n.t==='enter')enter(n.zone);else if(n.t==='exit')enter('outside');else if(n.t==='tub'){state.hasTub=true;state.story=Math.max(state.story,3);story('A clean container','<p>You find a clean Tupperware container in the kitchen. No coins are needed because it is already in your house.</p>');hud();save()}else if(n.t==='place'){state.habitatPlaced=true;state.story=Math.max(state.story,4);hud();save()}else if(n.t==='build')open('#build-dialog');else if(n.t==='sleep'){const score=Object.values(state.built).filter(Boolean).length;if(score<3)return story('Not ready yet','<p>Add at least three habitat essentials before sleeping.</p>');state.story=6;state.day++;state.time=420;save();story('Morning','<p>The frog made it through the first night. The larger town progression begins from here.</p>');hud()}else if(n.t==='npc'){const names={petshop:'Maya',diner:'Eli',market:'Nora',hardware:'Sam'};story(names[n.kind],`<p>You are talking to the cashier at the register. Full ordering and store systems come next, but the physical interior and NPC interaction are active now.</p>`)} }
 
 $$('[data-build]').forEach(b=>b.onclick=()=>{const k=b.dataset.build;if(state.built[k])return;state.built[k]=true;b.classList.add('done');if(Object.values(state.built).filter(Boolean).length>=3)state.story=Math.max(state.story,5);$('#build-score').textContent=`Readiness: ${Object.values(state.built).filter(Boolean).length}/4`;hud();save()});
@@ -98,10 +93,7 @@ function resize(){const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.cli
 function cameraUpdate(){const target=player.position.clone().add(new THREE.Vector3(0,1.5,0));const off=new THREE.Vector3(Math.sin(yaw)*Math.cos(pitch)*camDist,2+Math.sin(pitch)*camDist,Math.cos(yaw)*Math.cos(pitch)*camDist);camera.position.lerp(target.clone().add(off),.15);camera.lookAt(target)}
 function loop(t){const dt=Math.min(.05,(t-last)/1000);last=t;resize();move(dt);update(dt);detect();cameraUpdate();renderer.render(scene,camera);requestAnimationFrame(loop)}
 
-// Start rendering immediately. Account lookup happens afterward and can never block the game.
 player.position.copy(zones.outside);hud();requestAnimationFrame(loop);window.dispatchEvent(new Event('tb3d-ready'));
-setTimeout(()=>{
-  for(let i=0;i<45;i++){const x=-145+Math.random()*65,z=20+Math.random()*125;cyl(x,1.8,z,.22,3.6,0x76553d);sph(x,4,z,1.5+Math.random()*.7,0x456f43)}
-},0);
+setTimeout(()=>{for(let i=0;i<45;i++){const x=-145+Math.random()*65,z=20+Math.random()*125;cyl(x,1.8,z,.22,3.6,0x76553d);sph(x,4,z,1.5+Math.random()*.7,0x456f43)}},0);
 resolveUser().then(name=>{state.username=name;saveKey='tb3d-v6-'+name.toLowerCase();load();state.username=name;player.position.copy(zones[state.zone]||zones.outside);$('#welcome-name').textContent=`Welcome, ${name}.`;hud();});
 setInterval(()=>{if(!paused)save()},30000);
