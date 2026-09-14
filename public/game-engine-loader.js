@@ -15,7 +15,7 @@
   async function importWithTimeout(url,ms=12000){let timer;try{return await Promise.race([import(url),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Timed out loading '+url)),ms);})]);}finally{clearTimeout(timer);}}
 
   async function loadThree(){
-    const attempts=[['/api/three.js?build=12','TerrariumBuilds engine'],['https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js','jsDelivr backup'],['https://unpkg.com/three@0.160.1/build/three.module.js','unpkg backup']];
+    const attempts=[['/api/three.js?build=13','TerrariumBuilds engine'],['https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js','jsDelivr backup'],['https://unpkg.com/three@0.160.1/build/three.module.js','unpkg backup']];
     const errors=[];
     for(let i=0;i<attempts.length;i++){
       const [url,label]=attempts[i];
@@ -26,26 +26,30 @@
   }
 
   async function runGame(THREE){
-    status('Checking Update 0.0.7…');
-    const r=await fetch('/game-v007.js?build=12',{cache:'no-store'});
+    status('Checking realism revamp…');
+    const r=await fetch('/game-v007-r2.js?build=13',{cache:'no-store'});
     if(!r.ok)throw new Error('game file returned HTTP '+r.status);
-    const code=await r.text();
+    let code=await r.text();
+    // Safety repair for decimal-valued ternaries if minification ever collapses them.
+    code=code.replaceAll('sprint?.78:.45','sprint ? .78 : .45');
+    code=code.replaceAll('state.built.water?.005:.013','state.built.water ? .005 : .013');
+    code=code.replaceAll('state.habitatPlaced?-.004:.012','state.habitatPlaced ? -.004 : .012');
 
     let fn;
-    try{fn=new Function('THREE',code+'\n//# sourceURL=terrariumbuilds-update-007.js');}
+    try{fn=new Function('THREE',code+'\n//# sourceURL=terrariumbuilds-update-007-r2.js');}
     catch(err){throw new Error('game syntax check failed: '+(err?.message||String(err)));}
 
-    status('Building realistic neighborhood…');
+    status('Building house, traffic and town…');
     let ready=false;const onReady=()=>{ready=true;};window.addEventListener('tb3d-ready',onReady,{once:true});
     try{fn(THREE);}catch(err){throw new Error('game runtime crashed: '+(err?.message||String(err)));}
-    await new Promise((resolve,reject)=>{if(ready)return resolve();const began=performance.now();const timer=setInterval(()=>{if(ready){clearInterval(timer);resolve();}else if(performance.now()-began>9000){clearInterval(timer);reject(new Error('game code ran but never reached its ready signal'));}},50);});
+    await new Promise((resolve,reject)=>{if(ready)return resolve();const began=performance.now();const timer=setInterval(()=>{if(ready){clearInterval(timer);resolve();}else if(performance.now()-began>10000){clearInterval(timer);reject(new Error('game code ran but never reached its ready signal'));}},50);});
   }
 
   async function boot(){
     const caps=detectWebGL();
     if(!caps.gl2&&!caps.gl1){explain('WebGL is disabled','Your browser did not provide WebGL at all, so the 3D game cannot render.');return;}
-    if(paragraph)paragraph.textContent=caps.gl2?'WebGL 2 detected. Loading Update 0.0.7…':'WebGL 1 detected. Loading compatibility mode…';
-    try{const THREE=await loadThree();status('Engine loaded · starting revamp…');await runGame(THREE);if(paragraph)paragraph.textContent='Update 0.0.7 loaded. The larger storyline and realism revamp are active.';}
+    if(paragraph)paragraph.textContent=caps.gl2?'WebGL 2 detected. Loading the realism revamp…':'WebGL 1 detected. Loading compatibility mode…';
+    try{const THREE=await loadThree();status('Engine loaded · starting revamp…');await runGame(THREE);if(paragraph)paragraph.textContent='Update 0.0.7 Realism R2 loaded: walk-in house, animated doors, textures, faster sprint, moving traffic, and clearer objectives.';}
     catch(err){console.error('TerrariumBuilds startup failed',err);explain('Startup error',err?.message||'Unknown startup error');}
   }
 
