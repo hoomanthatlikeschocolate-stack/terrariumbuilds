@@ -2,126 +2,20 @@
 (function(){
   const VERSION='0.2 Alpha';
   document.title='Terrariums — '+VERSION;
-
-  // ---------- Performance-safe realism ----------
-  renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));
-  renderer.shadowMap.enabled=true;
-  scene.fog.near=185;scene.fog.far=Math.max(scene.fog.far||0,560);
-
-  // Warm interior lighting that follows day/night without adding expensive shadows.
-  const homeLights=[];
-  for(const p of [[HX-8,4.6,HZ+2],[HX-2,4.6,HZ-5],[HX+8,4.6,HZ-6],[HX+8,4.6,HZ+6]]){
-    const l=new THREE.PointLight(0xffdfa0,.6,15,2);l.position.set(p[0],p[1],p[2]);scene.add(l);homeLights.push(l);
-  }
-
-  // ---------- Better walk collisions ----------
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));renderer.shadowMap.enabled=true;scene.fog.near=185;scene.fog.far=Math.max(scene.fog.far||0,560);
+  const homeLights=[];for(const p of [[HX-8,4.6,HZ+2],[HX-2,4.6,HZ-5],[HX+8,4.6,HZ-6],[HX+8,4.6,HZ+6]]){const l=new THREE.PointLight(0xffdfa0,.6,15,2);l.position.set(p[0],p[1],p[2]);scene.add(l);homeLights.push(l);}
   function inRect(x,z,cx,cz,hw,hd){return Math.abs(x-cx)<hw&&Math.abs(z-cz)<hd;}
-  function walkCan(nx,nz){
-    if(state.zone!=='outside'&&state.zone!=='home') return canMove(nx,nz);
-    if(nx<-438||nx>438||nz<-438||nz>438)return false;
-    // Own house: only the actual front doorway can be crossed.
-    if(state.zone==='outside'&&inRect(nx,nz,HX,HZ,HW/2+.35,HD/2+.35)){
-      const doorway=Math.abs(nx-HX)<2.45&&nz>HZ+HD/2-3.2;
-      if(!doorway)return false;
-    }
-    if(state.zone==='home'){
-      const inside=inRect(nx,nz,HX,HZ,HW/2-.45,HD/2-.45);
-      const doorway=Math.abs(nx-HX)<2.45&&nz>HZ+HD/2-3.2&&nz<HZ+HD/2+3.2;
-      if(!inside&&!doorway)return false;
-    }
-    // Store exteriors are solid; doors still work because interaction happens outside them.
-    if(state.zone==='outside')for(const b of Object.values(B))if(inRect(nx,nz,b.x,b.z,16.2,11.6))return false;
-    return canMove(nx,nz);
-  }
-
-  // Replace the movement chain instead of wrapping it. This fixes accumulated car/walk wrappers
-  // from older realism patches and prevents the old houseSpots scope crash while driving.
-  move=function(dt){
-    if(paused)return;
-    if(state.inCar){
-      const gas=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0);
-      const steer=(keys.KeyA||keys.ArrowLeft?1:0)-(keys.KeyD||keys.ArrowRight?1:0);
-      const braking=!!keys.Space;
-      ownedCar.speed+=gas*dt*15.5;
-      ownedCar.speed*=Math.pow(braking?.72:.988,dt*60);
-      ownedCar.speed=clamp(ownedCar.speed,-7.5,25);
-      if(Math.abs(ownedCar.speed)>.18)ownedCar.g.rotation.y+=steer*dt*1.55*Math.sign(ownedCar.speed)*(0.34+Math.min(1,Math.abs(ownedCar.speed)/9));
-      const f=new THREE.Vector3(Math.sin(ownedCar.g.rotation.y),0,Math.cos(ownedCar.g.rotation.y));
-      const old=ownedCar.g.position.clone();ownedCar.g.position.addScaledVector(f,ownedCar.speed*dt);
-      ownedCar.g.position.x=clamp(ownedCar.g.position.x,-430,430);ownedCar.g.position.z=clamp(ownedCar.g.position.z,-430,430);
-      const x=ownedCar.g.position.x,z=ownedCar.g.position.z;
-      let hit=inRect(x,z,HX,HZ,HW/2+2,HD/2+2);
-      for(const b of Object.values(B))if(inRect(x,z,b.x,b.z,18,14))hit=true;
-      if(hit){ownedCar.g.position.copy(old);ownedCar.speed*=-.12;}
-      for(const w of ownedCar.wheels)w.rotation.x-=dt*ownedCar.speed*2.2;
-      return;
-    }
-    let x=0,z=0;if(keys.KeyW||keys.ArrowUp)z--;if(keys.KeyS||keys.ArrowDown)z++;if(keys.KeyA||keys.ArrowLeft)x--;if(keys.KeyD||keys.ArrowRight)x++;
-    const moving=x!==0||z!==0,sprint=!!((keys.ControlLeft||keys.ControlRight)&&state.energy>2);
-    if(moving){
-      const v=new THREE.Vector3(x,0,z).normalize().applyAxisAngle(new THREE.Vector3(0,1,0),yaw);
-      const targetSpeed=sprint?12.6:5.8;
-      const nx=player.position.x+v.x*dt*targetSpeed,nz=player.position.z+v.z*dt*targetSpeed;
-      if(walkCan(nx,player.position.z))player.position.x=nx;if(walkCan(player.position.x,nz))player.position.z=nz;
-      player.rotation.y=Math.atan2(v.x,v.z);walk+=dt*(sprint?13:7.4);const sw=Math.sin(walk)*(sprint?.76:.45);
-      limbs.la.rotation.x=sw;limbs.ra.rotation.x=-sw;limbs.ll.rotation.x=-sw*.75;limbs.rl.rotation.x=sw*.75;if(sprint)state.energy=clamp(state.energy-dt*1.35);
-    }else for(const g of Object.values(limbs))g.rotation.x*=.82;
-    vy-=13.5*dt;player.position.y+=vy*dt;if(player.position.y<=0){player.position.y=0;vy=0;onGround=true;}
-  };
-
-  // ---------- Car usability ----------
-  const carTip=document.createElement('div');carTip.style.cssText='position:absolute;right:16px;bottom:116px;z-index:12;padding:7px 10px;border-radius:12px;background:rgba(20,28,24,.72);color:white;font:700 11px system-ui;display:none;pointer-events:none';carTip.textContent='W/S drive · A/D steer · Space brake · E exit';document.querySelector('#game-shell').appendChild(carTip);
-  const oldDetect=detect;detect=function(){oldDetect();carTip.style.display=state.inCar?'block':'none';};
-
-  // ---------- Actual animal-care gameplay ----------
+  function walkCan(nx,nz){if(state.zone!=='outside'&&state.zone!=='home')return canMove(nx,nz);if(nx<-438||nx>438||nz<-438||nz>438)return false;if(state.zone==='outside'&&inRect(nx,nz,HX,HZ,HW/2+.35,HD/2+.35)){const doorway=Math.abs(nx-HX)<2.45&&nz>HZ+HD/2-3.2;if(!doorway)return false;}if(state.zone==='home'){const inside=inRect(nx,nz,HX,HZ,HW/2-.45,HD/2-.45),doorway=Math.abs(nx-HX)<2.45&&nz>HZ+HD/2-3.2&&nz<HZ+HD/2+3.2;if(!inside&&!doorway)return false;}if(state.zone==='outside')for(const b of Object.values(B))if(inRect(nx,nz,b.x,b.z,16.2,11.6))return false;return canMove(nx,nz);}
+  move=function(dt){if(paused)return;if(state.inCar){const gas=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0),steer=(keys.KeyA||keys.ArrowLeft?1:0)-(keys.KeyD||keys.ArrowRight?1:0),braking=!!keys.Space;ownedCar.speed+=gas*dt*15.5;ownedCar.speed*=Math.pow(braking ? .72 : .988,dt*60);ownedCar.speed=clamp(ownedCar.speed,-7.5,25);if(Math.abs(ownedCar.speed)>.18)ownedCar.g.rotation.y+=steer*dt*1.55*Math.sign(ownedCar.speed)*(0.34+Math.min(1,Math.abs(ownedCar.speed)/9));const f=new THREE.Vector3(Math.sin(ownedCar.g.rotation.y),0,Math.cos(ownedCar.g.rotation.y)),old=ownedCar.g.position.clone();ownedCar.g.position.addScaledVector(f,ownedCar.speed*dt);ownedCar.g.position.x=clamp(ownedCar.g.position.x,-430,430);ownedCar.g.position.z=clamp(ownedCar.g.position.z,-430,430);const x=ownedCar.g.position.x,z=ownedCar.g.position.z;let hit=inRect(x,z,HX,HZ,HW/2+2,HD/2+2);for(const b of Object.values(B))if(inRect(x,z,b.x,b.z,18,14))hit=true;if(hit){ownedCar.g.position.copy(old);ownedCar.speed*=-.12;}for(const w of ownedCar.wheels)w.rotation.x-=dt*ownedCar.speed*2.2;return;}let x=0,z=0;if(keys.KeyW||keys.ArrowUp)z--;if(keys.KeyS||keys.ArrowDown)z++;if(keys.KeyA||keys.ArrowLeft)x--;if(keys.KeyD||keys.ArrowRight)x++;const moving=x!==0||z!==0,sprint=!!((keys.ControlLeft||keys.ControlRight)&&state.energy>2);if(moving){const v=new THREE.Vector3(x,0,z).normalize().applyAxisAngle(new THREE.Vector3(0,1,0),yaw),targetSpeed=sprint?12.6:5.8,nx=player.position.x+v.x*dt*targetSpeed,nz=player.position.z+v.z*dt*targetSpeed;if(walkCan(nx,player.position.z))player.position.x=nx;if(walkCan(player.position.x,nz))player.position.z=nz;player.rotation.y=Math.atan2(v.x,v.z);walk+=dt*(sprint?13:7.4);const sw=Math.sin(walk)*(sprint ? .76 : .45);limbs.la.rotation.x=sw;limbs.ra.rotation.x=-sw;limbs.ll.rotation.x=-sw*.75;limbs.rl.rotation.x=sw*.75;if(sprint)state.energy=clamp(state.energy-dt*1.35);}else for(const g of Object.values(limbs))g.rotation.x*=.82;vy-=13.5*dt;player.position.y+=vy*dt;if(player.position.y<=0){player.position.y=0;vy=0;onGround=true;}};
+  const carTip=document.createElement('div');carTip.style.cssText='position:absolute;right:16px;bottom:116px;z-index:12;padding:7px 10px;border-radius:12px;background:rgba(20,28,24,.72);color:white;font:700 11px system-ui;display:none;pointer-events:none';carTip.textContent='W/S drive · A/D steer · Space brake · E exit';document.querySelector('#game-shell').appendChild(carTip);const oldDetect=detect;detect=function(){oldDetect();carTip.style.display=state.inCar?'block':'none';};
   const healthRow=document.createElement('label');healthRow.innerHTML='Health<i><b id="phealth-bar"></b></i><em id="phealth">100%</em>';const bars=document.querySelector('.pet-bars');if(bars)bars.prepend(healthRow);
-  function careDialog(){
-    const insect=state.inv.bugs||0;
-    dialog('Frog care check',`<p><b>Health:</b> ${Math.round(state.petHealth)}% · <b>Hunger:</b> ${Math.round(state.petHunger)}% · <b>Hydration:</b> ${Math.round(state.petWater)}% · <b>Stress:</b> ${Math.round(state.petStress)}%</p><p>Use what you already have. Supplies collected before an objective stay useful.</p><div class="form-actions"><button class="primary" data-care="feed" ${insect<1?'disabled':''}>Feed 1 insect (${insect} left)</button><button class="primary" data-care="water">Refresh water</button><button class="primary" data-care="quiet">Give quiet time</button></div>`, 'Animal care');
-  }
-  const baseInteract=interact;interact=function(){
-    if(!paused&&near?.type==='habitat'&&state.habitatPlaced&&state.story!==10){careDialog();return;}
-    return baseInteract();
-  };
-  document.addEventListener('click',e=>{
-    const b=e.target.closest('[data-care]');if(!b)return;
-    if(b.dataset.care==='feed'&&state.inv.bugs>0){state.inv.bugs--;state.petHunger=clamp(state.petHunger+30);state.petStress=clamp(state.petStress-3);}
-    if(b.dataset.care==='water'){state.petWater=100;if(state.built.water)state.petStress=clamp(state.petStress-2);}
-    if(b.dataset.care==='quiet'){state.petStress=clamp(state.petStress-10);}
-    save();hud();careDialog();
-  });
-
-  const oldNeeds=needs;needs=function(dt){
-    oldNeeds(dt);
-    if(state.frogCaught&&!state.frogReleased){
-      const bad=(state.petHunger<25?1:0)+(state.petWater<30?1:0)+(state.petStress>78?1:0);
-      state.petHealth=clamp(state.petHealth+dt*(bad?-.14*bad:.018));
-      if(state.petHealth<35)state.petStress=clamp(state.petStress+dt*.025);
-    }
-  };
-
-  // ---------- More believable town life ----------
-  const walkers=[];
-  function walker(x,z,col,axis){const w=npc(x,z,'Resident',col);w.axis=axis;w.baseX=x;w.baseZ=z;w.t=Math.random()*20;walkers.push(w);return w;}
-  walker(-18,24,0x586d7c,'x');walker(25,-22,0x7a6054,'z');walker(118,24,0x677a59,'x');walker(-128,35,0x745b75,'z');walker(205,102,0x556f68,'x');walker(-205,-112,0x785f55,'x');
-  const oldCars=updateCars;updateCars=function(dt){oldCars(dt);for(const w of walkers){w.t+=dt;const s=Math.sin(w.t*.45)*18;if(w.axis==='x'){w.obj.position.x=w.baseX+s;w.obj.rotation.y=s>=0?Math.PI/2:-Math.PI/2;}else{w.obj.position.z=w.baseZ+s;w.obj.rotation.y=s>=0?0:Math.PI;}}};
-
-  // ---------- HUD, objectives and lighting polish ----------
-  const hud02=hud;hud=function(){
-    hud02();const ph=document.querySelector('#phealth'),bar=document.querySelector('#phealth-bar');if(ph)ph.textContent=Math.round(state.petHealth)+'%';if(bar)bar.style.width=clamp(state.petHealth)+'%';
-    const o=document.querySelector('#objective-text');if(o){const t=cur()[2];const hint=t==='house'?' Walk through the front door.':t==='cabinet'?' Go to the kitchen lower cabinet.':t==='table'?' The dining table is left of the kitchen.':t==='bugs'?' Already collected insects count — check your inventory.':'';if(hint&&!o.textContent.includes(hint.trim()))o.textContent+=hint;}
-  };
+  function careDialog(){const insect=state.inv.bugs||0;dialog('Frog care check',`<p><b>Health:</b> ${Math.round(state.petHealth)}% · <b>Hunger:</b> ${Math.round(state.petHunger)}% · <b>Hydration:</b> ${Math.round(state.petWater)}% · <b>Stress:</b> ${Math.round(state.petStress)}%</p><p>Use what you already have. Supplies collected before an objective stay useful.</p><div class="form-actions"><button class="primary" data-care="feed" ${insect<1?'disabled':''}>Feed 1 insect (${insect} left)</button><button class="primary" data-care="water">Refresh water</button><button class="primary" data-care="quiet">Give quiet time</button></div>`,'Animal care');}
+  const baseInteract=interact;interact=function(){if(!paused&&near?.type==='habitat'&&state.habitatPlaced&&state.story!==10){careDialog();return;}return baseInteract();};
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-care]');if(!b)return;if(b.dataset.care==='feed'&&state.inv.bugs>0){state.inv.bugs--;state.petHunger=clamp(state.petHunger+30);state.petStress=clamp(state.petStress-3);}if(b.dataset.care==='water'){state.petWater=100;if(state.built.water)state.petStress=clamp(state.petStress-2);}if(b.dataset.care==='quiet')state.petStress=clamp(state.petStress-10);save();hud();careDialog();});
+  const oldNeeds=needs;needs=function(dt){oldNeeds(dt);if(state.frogCaught&&!state.frogReleased){const bad=(state.petHunger<25?1:0)+(state.petWater<30?1:0)+(state.petStress>78?1:0);state.petHealth=clamp(state.petHealth+dt*(bad ? -.14*bad : .018));if(state.petHealth<35)state.petStress=clamp(state.petStress+dt*.025);}};
+  const walkers=[];function walker(x,z,col,axis){const w=npc(x,z,'Resident',col);w.axis=axis;w.baseX=x;w.baseZ=z;w.t=Math.random()*20;walkers.push(w);}walker(-18,24,0x586d7c,'x');walker(25,-22,0x7a6054,'z');walker(118,24,0x677a59,'x');walker(-128,35,0x745b75,'z');walker(205,102,0x556f68,'x');walker(-205,-112,0x785f55,'x');const oldCars=updateCars;updateCars=function(dt){oldCars(dt);for(const w of walkers){w.t+=dt;const s=Math.sin(w.t*.45)*18;if(w.axis==='x'){w.obj.position.x=w.baseX+s;w.obj.rotation.y=s>=0?Math.PI/2:-Math.PI/2;}else{w.obj.position.z=w.baseZ+s;w.obj.rotation.y=s>=0?0:Math.PI;}}};
+  const hud02=hud;hud=function(){hud02();const ph=document.querySelector('#phealth'),bar=document.querySelector('#phealth-bar');if(ph)ph.textContent=Math.round(state.petHealth)+'%';if(bar)bar.style.width=clamp(state.petHealth)+'%';const o=document.querySelector('#objective-text');if(o){const t=cur()[2],hint=t==='house'?' Walk through the front door.':t==='cabinet'?' Go to the kitchen lower cabinet.':t==='table'?' The dining table is left of the kitchen.':t==='bugs'?' Already collected insects count — check your inventory.':'';if(hint&&!o.textContent.includes(hint.trim()))o.textContent+=hint;}};
   const light02=lighting;lighting=function(){light02();const mins=state.time%1440,night=mins<390||mins>1140;for(const l of homeLights)l.intensity=night?1.15:.45;};
-
-  // ---------- Save reliability ----------
-  addEventListener('beforeunload',()=>{try{save();}catch{}});
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){try{save();}catch{}}});
-
-  // Settings/status text.
-  const grid=document.querySelector('#settings-dialog .settings-grid');if(grid){const row=document.createElement('div');row.className='settings-row';row.innerHTML='<div><b>Terrariums 0.2 Alpha</b><small>Polished movement, house/store collisions, stable driving, real frog care actions, NPC pedestrians, better objective hints, lighting and save reliability.</small></div><strong>Active</strong>';grid.appendChild(row);}
-  const logo=document.querySelector('.logo-title');if(logo)logo.textContent='Terrariums · Update 0.2 Alpha';
-  const badge=document.querySelector('.revamp-badge');if(badge)badge.textContent='PLAYABLE ALPHA POLISH';
-  const welcomeText=document.querySelector('#welcome p');if(welcomeText)welcomeText.textContent='A more complete Terrariums build: smoother Roblox-style movement, stronger collisions, improved driving, working animal-care actions, clearer objectives, better saves, town life and a complete opening frog storyline.';
-  start.textContent='Start Terrariums 0.2 Alpha';
-  console.log('Terrariums 0.2 Alpha polish active');
+  addEventListener('beforeunload',()=>{try{save();}catch{}});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){try{save();}catch{}}});
+  const grid=document.querySelector('#settings-dialog .settings-grid');if(grid){const row=document.createElement('div');row.className='settings-row';row.innerHTML='<div><b>Terrariums 0.2 Alpha</b><small>Polished movement, house/store collisions, stable driving, real frog care actions, NPC pedestrians, better objective hints, lighting and save reliability.</small></div><strong>Active</strong>';grid.appendChild(row);}const logo=document.querySelector('.logo-title');if(logo)logo.textContent='Terrariums · Update 0.2 Alpha';const badge=document.querySelector('.revamp-badge');if(badge)badge.textContent='PLAYABLE ALPHA POLISH';const welcomeText=document.querySelector('#welcome p');if(welcomeText)welcomeText.textContent='A more complete Terrariums build: smoother Roblox-style movement, stronger collisions, improved driving, working animal-care actions, clearer objectives, better saves, town life and a complete opening frog storyline.';start.textContent='Start Terrariums 0.2 Alpha';console.log('Terrariums 0.2 Alpha polish active');
 })();
