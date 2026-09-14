@@ -1,113 +1,15 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#183a29">
-  <meta name="description" content="TerrariumBuilds 3D beta — build habitats, care for animals, explore town, and live your day.">
-  <title>TerrariumBuilds 3D — Beta 0.0.3</title>
-  <link rel="stylesheet" href="/game.css?v=0.0.3-beta">
-</head>
-<body>
-  <div id="game-shell">
-    <canvas id="game" aria-label="TerrariumBuilds 3D beta game"></canvas>
-
-    <div id="hud">
-      <div class="brand-chip"><strong>TerrariumBuilds 3D</strong><span>REALISM UPDATE · v0.0.3</span></div>
-      <div class="stats">
-        <div><span>Coins</span><strong id="coins">25</strong></div>
-        <div><span>Health</span><strong id="health">100%</strong></div>
-        <div><span>Hunger</span><strong id="hunger">100%</strong></div>
-        <div><span>Energy</span><strong id="energy">100%</strong></div>
-        <div><span>Pet</span><strong id="pet-health">100%</strong></div>
-        <div><span>Time</span><strong id="clock">8:00 AM</strong></div>
-      </div>
-    </div>
-
-    <div id="objective" class="panel objective-panel">
-      <span class="eyebrow">Current goal</span>
-      <strong id="objective-title">First night challenge</strong>
-      <span id="objective-text">Build a safe starter enclosure before midnight.</span>
-    </div>
-
-    <div id="pet-card" class="panel pet-panel">
-      <div class="pet-title"><span>🐸</span><div><strong>Moss</strong><small>Starter toad</small></div></div>
-      <div class="meter"><span>Hunger</span><i><b id="pet-hunger-bar"></b></i><em id="pet-hunger">82%</em></div>
-      <div class="meter"><span>Hydration</span><i><b id="pet-water-bar"></b></i><em id="pet-water">88%</em></div>
-      <div class="meter"><span>Stress</span><i><b id="pet-stress-bar"></b></i><em id="pet-stress">18%</em></div>
-    </div>
-
-    <div id="prompt" class="prompt" hidden></div>
-    <div id="location-chip">Home neighborhood</div>
-
-    <div id="help" class="panel controls-panel">
-      <div class="help-head"><strong>Controls</strong><button id="collapse-help" type="button" aria-label="Collapse controls">−</button></div>
-      <div id="help-body">
-        <span><kbd>WASD</kbd> move · <kbd>Shift</kbd> sprint</span>
-        <span><kbd>Space</kbd> jump · mouse look</span>
-        <span><kbd>E</kbd> interact · <kbd>B</kbd> build</span>
-        <span><kbd>I</kbd> backpack · <kbd>M</kbd> map</span>
-        <span><kbd>F</kbd> feed pet · wheel zoom</span>
-        <span><kbd>Esc</kbd> close menus / release mouse</span>
-      </div>
-    </div>
-
-    <div id="build-panel" class="modal-card wide" hidden>
-      <div class="modal-head"><div><span class="eyebrow">Habitat workshop</span><h2>Build Moss's terrarium</h2></div><button data-close="build-panel" type="button">×</button></div>
-      <p>Build it the way you would in real life: start with the base, add cover, hydration, and places to hide.</p>
-      <div id="build-status" class="build-status"></div>
-      <div class="build-grid">
-        <button type="button" data-build="substrate"><span>🟫</span><b>Deep substrate</b><small>2 leaf litter + 1 soil</small></button>
-        <button type="button" data-build="leaves"><span>🍂</span><b>Leaf litter layer</b><small>2 leaf litter</small></button>
-        <button type="button" data-build="moss"><span>🌱</span><b>Moss patch</b><small>2 moss</small></button>
-        <button type="button" data-build="grass"><span>🌿</span><b>Grass cover</b><small>2 grass</small></button>
-        <button type="button" data-build="hide"><span>🪵</span><b>Cork hide</b><small>8 coins or owned item</small></button>
-        <button type="button" data-build="water"><span>💧</span><b>Water dish</b><small>6 coins or owned item</small></button>
-        <button type="button" data-build="branch"><span>🪵</span><b>Wood structure</b><small>2 sticks</small></button>
-        <button type="button" data-build="thermometer"><span>🌡️</span><b>Thermometer</b><small>12 coins or owned item</small></button>
-      </div>
-      <div class="inventory-line" id="build-inventory"></div>
-    </div>
-
-    <div id="shop-panel" class="modal-card wide" hidden>
-      <div class="modal-head"><div><span class="eyebrow" id="shop-eyebrow">Town shop</span><h2 id="shop-title">Pet & Habitat Shop</h2></div><button data-close="shop-panel" type="button">×</button></div>
-      <p id="shop-description">Supplies for your animal and enclosure.</p>
-      <div id="shop-grid" class="shop-grid"></div>
-    </div>
-
-    <div id="inventory-panel" class="modal-card" hidden>
-      <div class="modal-head"><div><span class="eyebrow">Backpack</span><h2>Your stuff</h2></div><button data-close="inventory-panel" type="button">×</button></div>
-      <div id="inventory-grid" class="inventory-grid"></div>
-      <div class="inventory-actions"><button id="eat-snack" type="button">Eat a snack</button><button id="drink-water" type="button">Drink water</button><button id="save-game" type="button">Save game</button></div>
-    </div>
-
-    <div id="map-panel" class="modal-card map-card" hidden>
-      <div class="modal-head"><div><span class="eyebrow">Town map</span><h2>TerrariumBuilds Valley</h2></div><button data-close="map-panel" type="button">×</button></div>
-      <div class="map-world" aria-label="Schematic game map">
-        <span class="map-road road-h"></span><span class="map-road road-v"></span>
-        <button type="button" data-map="home" style="left:22%;top:67%">🏠 <b>Home</b></button>
-        <button type="button" data-map="petshop" style="left:55%;top:67%">🦎 <b>Pet Shop</b></button>
-        <button type="button" data-map="diner" style="left:56%;top:39%">🍔 <b>Diner</b></button>
-        <button type="button" data-map="grocery" style="left:72%;top:39%">🛒 <b>Market</b></button>
-        <button type="button" data-map="hardware" style="left:72%;top:67%">🧰 <b>Hardware</b></button>
-        <button type="button" data-map="vet" style="left:55%;top:15%">🏥 <b>Vet</b></button>
-        <button type="button" data-map="forest" style="left:15%;top:20%">🌲 <b>Forest</b></button>
-        <button type="button" data-map="pond" style="left:29%;top:24%">💧 <b>Pond</b></button>
-        <span id="map-you">● YOU</span>
-      </div>
-      <p class="map-note">The world is much larger now. Map buttons set a waypoint; they do not teleport you.</p>
-    </div>
-
-    <div id="sleep-panel" class="modal-card" hidden>
-      <div class="modal-head"><div><span class="eyebrow">Your bedroom</span><h2>End the day?</h2></div><button data-close="sleep-panel" type="button">×</button></div>
-      <p>Sleeping restores energy and advances to 7:00 AM. Your animal's habitat and care choices matter overnight.</p>
-      <button class="primary-action" id="sleep-now" type="button">Sleep until morning</button>
-    </div>
-
-    <div id="toast" role="status" aria-live="polite"></div>
-    <div id="crosshair" aria-hidden="true">+</div>
-    <a class="back-link" href="/">← Website</a>
-  </div>
-  <script type="module" src="/game.js?v=0.0.3-beta"></script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#183a29"><meta name="description" content="TerrariumBuilds 3D storyline beta"><title>TerrariumBuilds 3D — v0.0.5</title><link rel="stylesheet" href="/game-v005.css?v=0.0.5"></head><body><div id="game-shell">
+<canvas id="game" aria-label="TerrariumBuilds 3D"></canvas>
+<div id="hud"><div class="hud-cell glass"><span>Health</span><strong id="health">100%</strong></div><div class="hud-cell glass"><span>Hunger</span><strong id="hunger">100%</strong></div><div class="hud-cell glass"><span>Energy</span><strong id="energy">100%</strong></div><div class="hud-cell glass" id="coin-cell" hidden><span>Coins</span><strong id="coins">0</strong></div><div class="hud-cell glass"><span>Time</span><strong id="clock">Day 1 · 9:00 AM</strong></div></div>
+<div class="profile-chip glass" id="profile-chip">Guest</div><button class="settings-btn glass" id="settings-btn">⚙ Settings</button><div class="location-chip glass" id="location">Home neighborhood</div>
+<div class="pet-card glass" id="pet-card" hidden><div class="pet-title"><span>🐸</span><div><strong id="pet-name">Moss</strong><small>Wild frog · temporary care</small></div></div><div class="pet-bars"><label>Hunger<i><b id="ph-bar"></b></i><em id="ph">88%</em></label><label>Hydration<i><b id="pw-bar"></b></i><em id="pw">82%</em></label><label>Stress<i><b id="ps-bar"></b></i><em id="ps">20%</em></label></div></div>
+<div class="story-card glass"><span class="chapter">Story · Chapter 1</span><h2 id="objective-title">A frog in the yard</h2><p id="objective-text">Go outside and investigate the frog near the edge of the yard.</p><div class="story-progress" id="story-progress"></div></div>
+<div class="prompt" id="prompt" hidden></div><div class="crosshair"></div><div class="save-state" id="save-state">Autosave ready</div><a class="back-link" href="/">← TerrariumBuilds website</a>
+<div class="welcome" id="welcome"><div class="welcome-inner"><div class="logo-title">TerrariumBuilds 3D · v0.0.5</div><h1 id="welcome-name">Welcome home.</h1><p>Storyline Update + Realism+. Your first animal is not bought from a menu. You notice a frog outside, bring it in temporarily, find a container in your own house, and figure out how to care for it with what you already have.</p><button id="start-game">Start Chapter 1</button></div></div>
+<div class="chapter-banner" id="chapter-banner" hidden><p>Chapter 1</p><h2>A frog in the yard</h2></div>
+<div class="dialog glass" id="story-dialog" hidden><div class="dialog-head"><div><span class="eyebrow" id="dialog-eyebrow">Story</span><h2 id="dialog-title">Story</h2></div><button class="close" data-close-dialog>×</button></div><div id="dialog-body"></div></div>
+<div class="dialog glass" id="build-dialog" hidden><div class="dialog-head"><div><span class="eyebrow">Temporary habitat</span><h2>Set up the Tupperware</h2></div><button class="close" data-close-dialog>×</button></div><div class="tutorial-callout">For this opening story section, household basics are free. The point is to make good care decisions, not grind coins.</div><div class="choices" id="build-choices"><button data-build="soil">🟫 <b>Moist soil</b><br><small>From the garden</small></button><button data-build="leaves">🍂 <b>Leaf litter</b><br><small>From outside</small></button><button data-build="water">💧 <b>Shallow water dish</b><br><small>From the kitchen</small></button><button data-build="hide">🪵 <b>Simple hide</b><br><small>Household item</small></button></div><p id="build-score"></p></div>
+<div class="dialog glass" id="inventory-dialog" hidden><div class="dialog-head"><div><span class="eyebrow">Backpack</span><h2>Your stuff</h2></div><button class="close" data-close-dialog>×</button></div><div class="inventory-grid" id="inventory-grid"></div></div>
+<div class="dialog glass" id="settings-dialog" hidden><div class="dialog-head"><div><span class="eyebrow">Game settings</span><h2>Settings</h2></div><button class="close" data-close-dialog>×</button></div><div class="settings-grid"><div class="settings-row"><div><b>Account</b><small>Game progress is stored separately for this website account on this browser.</small></div><strong id="settings-user">Guest</strong></div><div class="settings-row"><div><b>Autosave</b><small>Saves story, inventory, care, day/time and position.</small></div><strong>On</strong></div><div class="settings-row"><div><b>Controls</b><small>WASD move · Shift sprint · Space jump · E interact · I inventory · B habitat · Esc menus</small></div></div></div><button class="danger" id="restart-game">Restart story from the beginning</button></div>
+<script type="module" src="/game-v005.js?v=0.0.5"></script></div></body></html>
