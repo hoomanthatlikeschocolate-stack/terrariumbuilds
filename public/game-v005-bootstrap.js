@@ -5,16 +5,33 @@
   const canvas=document.getElementById('game');
   if(!start||!welcome||!canvas)return;
 
+  // The game asks the site API for the signed-in username before it starts its
+  // render loop. If that request stalls, the old loader could sit forever on
+  // “Loading the neighborhood…”. Keep account lookup from ever blocking play.
+  const nativeFetch=window.fetch.bind(window);
+  window.fetch=(input,init={})=>{
+    const url=typeof input==='string'?input:(input&&input.url)||'';
+    if(!url.includes('/api/terrarium?action=session'))return nativeFetch(input,init);
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),1800);
+    return nativeFetch(input,{...init,signal:init.signal||controller.signal})
+      .catch(err=>{
+        if(err?.name==='AbortError')return new Response('{"user":null}',{status:200,headers:{'Content-Type':'application/json'}});
+        throw err;
+      })
+      .finally(()=>clearTimeout(timer));
+  };
+
   let requested=false;
   let moduleReady=false;
   let gameRendered=false;
   let replaying=false;
-  let failed=false;
   let waitTimer=null;
+  let startupTimer=null;
 
+  const resetTimers=()=>{clearInterval(waitTimer);clearTimeout(startupTimer);};
   const showError=(message)=>{
-    failed=true;
-    clearInterval(waitTimer);
+    resetTimers();
     welcome.hidden=false;
     start.disabled=false;
     start.textContent='Retry Chapter 1';
@@ -23,6 +40,7 @@
   };
 
   const showChapter=()=>{
+    resetTimers();
     welcome.hidden=true;
     if(banner){
       banner.hidden=false;
@@ -43,14 +61,14 @@
     clearInterval(waitTimer);
     const began=performance.now();
     waitTimer=setInterval(()=>{
-      // A fresh canvas is 300x150. The game's resize/render loop changes it
-      // to the real viewport dimensions on its first successful frame.
+      // The game resize loop changes the canvas drawing buffer on the first
+      // successful frame. This is more reliable than hiding the loader early.
       if(canvas.width!==300||canvas.height!==150){
         gameRendered=true;
         clearInterval(waitTimer);
         handOffToGame();
-      }else if(performance.now()-began>10000){
-        showError('The 3D world loaded but never rendered its first frame. Press Retry Chapter 1. If it happens again, refresh once.');
+      }else if(performance.now()-began>9000){
+        showError('The neighborhood did not finish rendering. Press Retry Chapter 1.');
       }
     },50);
   };
@@ -58,23 +76,27 @@
   start.addEventListener('click',()=>{
     if(replaying)return;
     requested=true;
-    failed=false;
     start.disabled=true;
     start.textContent='Loading the neighborhood…';
-    // Keep the welcome screen up until the WebGL world has ACTUALLY drawn.
-    // This prevents the old blank/green-screen state.
-    if(moduleReady&&gameRendered)handOffToGame();
+    clearTimeout(startupTimer);
+    startupTimer=setTimeout(()=>{
+      if(!gameRendered)showError('Startup took too long instead of getting stuck forever. Press Retry Chapter 1.');
+    },12000);
+    if(moduleReady){
+      if(gameRendered)handOffToGame();
+      else watchForFirstFrame();
+    }
   },true);
 
-  addEventListener('error',e=>{
-    if(requested&&!gameRendered)showError('Something stopped the 3D world from starting. Press Retry Chapter 1.');
+  addEventListener('error',()=>{
+    if(requested&&!gameRendered)showError('A game script error stopped the neighborhood from starting. Press Retry Chapter 1.');
   });
   addEventListener('unhandledrejection',e=>{
     console.error('TerrariumBuilds 3D startup rejection',e.reason);
-    if(requested&&!gameRendered)showError('The 3D world hit a startup error. Press Retry Chapter 1.');
+    if(requested&&!gameRendered)showError('A startup request failed. Press Retry Chapter 1.');
   });
 
-  import('/game-v005.js?v=0.0.5.2').then(()=>{
+  import('/game-v005.js?v=0.0.5.3').then(()=>{
     moduleReady=true;
     watchForFirstFrame();
     if(!requested){
